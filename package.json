@@ -1,0 +1,14 @@
+{
+  "name": "vermont-events-website",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "gen-config": "node scripts/generate-config.js",
+    "fetch-events": "node fetch-events.js",
+    "build": "npm run gen-config && npm run fetch-events",
+    "start": "npm run build && serve public"
+  },
+  "dependencies": {
+    "node-fetch": "^3.0.0"
+  }
+}
