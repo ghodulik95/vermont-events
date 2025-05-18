@@ -1,12 +1,11 @@
 export async function onRequestPost(context) {
   try {
-    // Parse JSON payload safely
-    const { title, body } = await context.request.json();
+    const { title, body, category } = await context.request.json();
 
-    if (!title || !body) {
+    if (!title || !body || !category) {
       return new Response(JSON.stringify({
         success: false,
-        error: "Missing required fields: 'title' and/or 'body'."
+        error: "Missing required fields: title, body, or category."
       }), { status: 400 });
     }
 
@@ -14,44 +13,43 @@ export async function onRequestPost(context) {
     if (!githubToken) {
       return new Response(JSON.stringify({
         success: false,
-        error: "Missing GitHub token in environment."
+        error: "Server misconfiguration: missing GitHub token."
       }), { status: 500 });
     }
 
     const repo = 'ghodulik95/vermont-events';
+    const label = `UserSubmitted:${category}`;
     const apiUrl = `https://api.github.com/repos/${repo}/issues`;
 
-    const githubResponse = await fetch(apiUrl, {
+    const ghRes = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `token ${githubToken}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-        'User-Agent': 'vermont-events-alpha-issue-submission'  // <- required
+        'Accept':        'application/vnd.github.v3+json',
+        'Content-Type':  'application/json',
+        'User-Agent':    'vermont-events-issue-submission'
       },
-      body: JSON.stringify({ title, body })
+      body: JSON.stringify({ title, body, labels: [label] })
     });
 
-
-    const githubResponseText = await githubResponse.text();
-
-    if (!githubResponse.ok) {
-      console.error("GitHub API Error:", githubResponse.status, githubResponseText);
+    const ghText = await ghRes.text();
+    if (!ghRes.ok) {
+      console.error("GitHub API Error:", ghRes.status, ghText);
       return new Response(JSON.stringify({
         success: false,
-        status: githubResponse.status,
-        error: githubResponseText
-      }), { status: githubResponse.status });
+        status: ghRes.status,
+        error: ghText
+      }), { status: ghRes.status });
     }
 
-    console.log("GitHub Issue Created Successfully");
-    return new Response(JSON.stringify({ success: true, message: githubResponseText }), { status: 200 });
+    console.log("Issue created:", ghText);
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
 
-  } catch (error) {
-    console.error("Unhandled Error:", error);
+  } catch (err) {
+    console.error("Unhandled Error:", err);
     return new Response(JSON.stringify({
       success: false,
-      error: error instanceof Error ? error.message : String(error)
+      error: err.message || String(err)
     }), { status: 500 });
   }
 }
