@@ -15,11 +15,15 @@ document.getElementById('issueForm').addEventListener('submit', async (e) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title, body })
   });
-  console.log(response);
+
+  const responseText = await response.text();
+  console.log("Response Status:", response.status);
+  console.log("Response Body:", responseText);
+
   if (response.ok) {
     alert('Issue submitted successfully!');
   } else {
-    alert('Failed to submit issue.');
+    alert(`Failed to submit issue. Details: ${responseText}`);
   }
 });
 </script>
