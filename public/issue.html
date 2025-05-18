@@ -15,7 +15,7 @@ document.getElementById('issueForm').addEventListener('submit', async (e) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title, body })
   });
-
+  console.log(response);
   if (response.ok) {
     alert('Issue submitted successfully!');
   } else {

@@ -2,7 +2,6 @@ import fs from "fs/promises";
 
 // Define required raw environment variables (before defaults)
 const requiredEnvVars = ["SITE_TITLE", "MOBILIZON_URL"];
-console.log(process.env);
 // Check raw environment for missing variables
 const missing = requiredEnvVars.filter(key => !process.env[key]);
 if (missing.length > 0) {

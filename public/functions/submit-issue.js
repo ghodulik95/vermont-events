@@ -12,6 +12,8 @@ export async function onRequestPost(context) {
     },
     body: JSON.stringify({ title, body })
   });
+  
+  console.log(githubResponse);
 
   if (!githubResponse.ok) {
     const error = await githubResponse.text();
