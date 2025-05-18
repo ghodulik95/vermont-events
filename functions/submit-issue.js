@@ -27,9 +27,11 @@ export async function onRequestPost(context) {
         'Authorization': `token ${githubToken}`,
         'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json',
+        'User-Agent': 'vermont-events-alpha-issue-submission'  // <- required
       },
       body: JSON.stringify({ title, body })
     });
+
 
     const githubResponseText = await githubResponse.text();
 
