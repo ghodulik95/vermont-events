@@ -4,6 +4,17 @@
     fetch('/data/events.json').then(r => r.json())
   ]);
 
+  document.querySelectorAll(".mobilizon-url").forEach(el => {
+    const l = document.createElement("a");
+    l.href = config.mobilizonUrl;
+    l.textContent = config.mobilizonUrl.replace(/^https?:\/\//, ''); // clean display
+    l.target = "_blank";
+    l.rel = "noopener noreferrer";
+    el.innerHTML = "";
+    el.appendChild(l);
+  });
+
+
   // Site title
   //document.getElementById('site-title').textContent = config.siteTitle
   
