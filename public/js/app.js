@@ -1,18 +1,37 @@
 (async () => {
-  const [config, events] = await Promise.all([
+  const [config, events, about] = await Promise.all([
     fetch('/config.json').then(r => r.json()),
-    fetch('/data/events.json').then(r => r.json())
+    fetch('/data/events.json').then(r => r.json()),
+    fetch('/partials/about-tab.html').then(r => r.text())
   ]);
-
-  document.querySelectorAll(".mobilizon-url").forEach(el => {
-    const l = document.createElement("a");
-    l.href = config.mobilizonUrl;
-    l.textContent = config.mobilizonUrl.replace(/^https?:\/\//, ''); // clean display
-    l.target = "_blank";
-    l.rel = "noopener noreferrer";
-    el.innerHTML = "";
-    el.appendChild(l);
-  });
+  
+  document.getElementById('aboutTab').outerHTML = about;
+  document.title = config.siteTitle;
+  
+  function insertText(className, text) {
+    document.querySelectorAll("." + className).forEach(el => {
+      el.textContent = text;
+    });
+  }
+  
+  function insertLink(className, link, text) {
+    document.querySelectorAll("." + className).forEach(el => {
+      const l = document.createElement("a");
+      l.href = link;
+      l.textContent = text;
+      l.target = "_blank";
+      l.rel = "noopener noreferrer";
+      el.innerHTML = "";
+      el.appendChild(l);
+    });
+  }
+  
+  function insertMail(className, email, text) {
+    
+  }
+  
+  insertLink("mobilizon-url", config.mobilizonUrl, config.mobilizonUrl.replace(/^https?:\/\//, ''));
+  insertText("site-name-text", config.siteTitle);
 
 
   // Site title

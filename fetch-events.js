@@ -102,7 +102,6 @@ async function main() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query, variables })
       });
-  console.log(resp);
   const raw = await resp.json();
 
   // 2) Simplify

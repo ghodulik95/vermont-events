@@ -1,0 +1,114 @@
+<div id="aboutTab" class="tabContent" style="display: none;">
+      <div class="about-container" style="display: flex; gap: 1rem;">
+        <nav class="about-sidebar">
+          <button class="about-link active" data-panel="panel1">What is <span class="site-name-text"></span>?</button>
+          <button class="about-link" data-panel="panel9">Publish your own events</button>
+          <button class="about-link" data-panel="panel2">Using Filters</button>
+          <button class="about-link" data-panel="panel4">Subscribe to the Calendar</button>
+          <button class="about-link" data-panel="panel6">Support & Donations</button>
+          <button class="about-link" data-panel="panel7">Sources & Code</button>
+          <button class="about-link" data-panel="panel3">Contact Us</button>
+          <button class="about-link" data-panel="panel8">For organizers</button>
+          <button class="about-link" data-panel="panel5">Future plans</button>
+        </nav>
+        <div class="about-content" style="flex: 1;">
+          <div id="panel1" class="about-panel">
+            <h2>What is <span class="site-name-text"></span>?</h2>
+            <p><span class="site-name-text"></span> is a free community service run by Rutland local <strong>George Hodulik</strong>. It brings together community events from across Vermont into a single, easy-to-use calendar, map, and event listing.</p>
+            <p>Event data is gathered through automated <strong>web scraping</strong> and <strong>ICS calendar integration</strong>. The backend uses <strong>Mobilizon</strong> to manage events and <strong>ChatGPT-3.5 Turbo</strong> to extract event details from source websites.</p>
+            <p>Because this process is automated, event details may sometimes be inaccurate or missing. We strongly recommend clicking through to the <strong>original event page</strong> to confirm the latest information. Events are updated approximately <strong>once a week</strong>, so last-minute changes may not be reflected.</p>
+            <p>Lastly, <span class="site-name-text"></span> is likely to contain some duplicate events.<p>
+          </div>
+          <div id="panel9" class="about-panel" style="display: none;">
+            <h2>Publish an event</h2>
+            <p>Publishing to <span class="site-name-text"></span> is easy. We use a <strong>Mobilizon</strong> backend, so all you have to do is create an account on our backend server: <span class = "mobilizon-url"></><p>
+          </div>
+          <div id="panel2" class="about-panel" style="display: none;">
+            <h2>Using Filters</h2>
+            <p>Use the search box, date pickers, town filter, and category filter to narrow down the event listings. Selecting “All” resets that filter. The calendar, map, and event cards will update automatically to reflect your selection.</p>
+            <p>If the calendar or map appears empty, check the Event Cards.</p>
+            <p>Note that some events do not have location information, so they do not appear on the map view. You can specifically see these events that are hidden from the map view by going to the Event Card view and toggling ' Hide events with location data'.</p>
+            
+            
+          </div>
+          <div id="panel4" class="about-panel" style="display: none;">
+            <h2>Subscribe to the Calendar</h2>
+            <p>You can subscribe to the <span class="site-name-text"></span> calendar in your favorite calendar app using the link below:</p>
+            <p><strong>Calendar Link:</strong> <a href="https://vermontmobilizon.xyz/ical.ics" target="_blank">https://vermontmobilizon.xyz/ical.ics</a></p>
+            <p>To embed this calendar on your website, use the following HTML snippet:</p>
+            <div style="position: relative; margin-top: 0.5rem;">
+              <textarea id="embedCode" readonly style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"><iframe src="https://vermontmobilizon.xyz/ical.ics" style="width:100%; height:600px;"></iframe></textarea>
+            </div>
+          </div>
+          <div id="panel5" class="about-panel" style="display: none;">
+            <h2>In the possible future...</h2>
+            <p><span class="site-name-text"></span> is intentionally <strong>minimalistic</strong>, but the platform can support additional features such as:</p>
+            <ul>
+              <li>User accounts</li>
+              <li>Event reminders &amp; notifications</li>
+              <li>Commenting on events</li>
+              <li>Source-specific calendars/subscriptions</li>
+            </ul>
+            <p>If these are features you’d like to see, please <a href="mailto:info@vermont.events">let us know</a> so we can gauge interest.</p>
+          </div>
+          <div id="panel6" class="about-panel" style="display: none;">
+            <h2>Support &amp; Donations</h2>
+            <p><span class="site-name-text"></span> is provided free of charge for the local community. George runs this project personally and covers all costs out-of-pocket. If you find the service helpful, you can support its ongoing development by donating:</p>
+            <p><a href="https://example.com/donate" target="_blank" style="font-weight: bold;">Make a Donation</a></p>
+          </div>
+          <div id="panel7" class="about-panel" style="display: none;">
+            <h2>Sources &amp; Code</h2>
+            <p>Events are aggregated from a variety of community websites and public calendars, including:</p>
+            <ul>
+              <li><a href="https://www.paramountvt.org/events-calendar/" target="_blank">www.paramountvt.org/events-calendar/</a></li>
+              <li><a href="https://www.rcpride.org/events" target="_blank">www.rcpride.org/events</a></li>
+              <li><a href="https://www.rutlandrec.com/communityevents" target="_blank">www.rutlandrec.com/communityevents</a></li>
+              <li><a href="https://www.rutlandrec.com/icearena" target="_blank">www.rutlandrec.com/icearena</a></li>
+              <li><a href="https://www.rutlandrec.com/camps" target="_blank">www.rutlandrec.com/camps</a></li>
+              <li><a href="https://www.rutlandcity.org/calendar/" target="_blank">www.rutlandcity.org/calendar/</a></li>
+              <li><a href="https://downtownrutland.com/events" target="_blank">downtownrutland.com/events</a></li>
+              <li><a href="https://rutlandmint.org/calendar" target="_blank">rutlandmint.org/calendar</a></li>
+              <li><a href="https://brandonpubliclibrary.org/events/" target="_blank">brandonpubliclibrary.org/events/</a></li>
+              <li><a href="https://rutlandfree.org/calendar-events/" target="_blank">rutlandfree.org/calendar-events/</a></li>
+              <li><a href="https://www.socialtinkering.org/upcomingevents" target="_blank">www.socialtinkering.org/upcomingevents</a></li>
+              <li><a href="https://vermontstate.edu/calendar/" target="_blank">vermontstate.edu/calendar/</a></li>
+              <li><a href="https://oneroomtheatrics.com/upcoming-performances" target="_blank">oneroomtheatrics.com/upcoming-performances</a></li>
+              <li><a href="https://naacprutland.org/" target="_blank">naacprutland.org/</a></li>
+              <li><a href="https://gracechurchvt.org/active-grace/calendar/?amp=1" target="_blank">gracechurchvt.org/active-grace/calendar/?amp=1</a></li>
+              <li><a href="https://www.trinitychurchrutland.org/events" target="_blank">www.trinitychurchrutland.org/events</a></li>
+              <li><a href="https://www.rutlandjewishcenter.org/calendar.html" target="_blank">www.rutlandjewishcenter.org/calendar.html</a></li>
+              <li><a href="https://companionsinwholeness.org/" target="_blank">companionsinwholeness.org/</a></li>
+              <li><a href="https://www.rutlandyoungprofessionals.org/events" target="_blank">www.rutlandyoungprofessionals.org/events</a></li>
+              <li><a href="https://members.rutlandvermont.com/events/calendar/" target="_blank">members.rutlandvermont.com/events/calendar/</a></li>
+              <li><a href="http://www.chaffeeartcenter.org/" target="_blank">www.chaffeeartcenter.org/</a></li>
+              <li><a href="http://www.wonderfeetkidsmuseum.org/monthly-calendar" target="_blank">www.wonderfeetkidsmuseum.org/monthly-calendar</a></li>
+              <li><a href="https://www.rutlandbgclub.org/rutland-city/" target="_blank">www.rutlandbgclub.org/rutland-city/</a></li>
+              <li><a href="https://www.rutlandbgclub.org/barstow/" target="_blank">www.rutlandbgclub.org/barstow/</a></li>
+              <li><a href="https://rutlandbgclub.org/castleton/" target="_blank">rutlandbgclub.org/castleton/</a></li>
+              <li><a href="https://www.rutlandbgclub.org/fair-haven/" target="_blank">www.rutlandbgclub.org/fair-haven/</a></li>
+              <li><a href="https://queervt.org" target="_blank">queervt.org</a></li>
+              <li><a href="https://frontporchforum.com" target="_blank">frontporchforum.com</a></li>
+              <li>If you know of more event calendars you think we should add, let us know at <a href="mailto:info@vermont.events">info@vermont.events</a>.</li>
+            </ul>
+
+            <p style="margin-top: 0.5rem; font-style: italic;">
+              Note: Inclusion in this list means this site or an associated ICS calendar is included in our scraping. It does not necessarily guarantee that scraping is always able to successfully pull events.
+            </p>
+            <p>The source code for this project is open and available here (placeholder link - repo not public yet):</p>
+            <p><a href="https://github.com/ghodulik95" target="_blank">https://github.com/ghodulik95</a></p>
+          </div>
+
+          <div id="panel3" class="about-panel" style="display: none;">
+            <h2>Contact Us</h2>
+            <p>Have feedback, ideas, or corrections? Email us at <a href="mailto:info@vermont.events">info@vermont.events</a>.</p>
+          </div>
+          <div id="panel8" class="about-panel" style="display: none;">
+            <h2>For organizers</h2>
+            <p>Please know that events are scraped from public sites and/or .ics calendars.</p>
+            <p><strong>If you do not want your events shared on <span class="site-name-text"></span>,</strong> please contact <a href="mailto:info@vermont.events">info@vermont.events</a>. We will remove currently shared events as soon as possible, and no longer query your events (or will not in the future if we do not currently).</p>     
+            <p>If we do not currently share your events, <strong>but you would like to request that <span class="site-name-text"></span> do so,</strong> please contact <a href="mailto:info@vermont.events">info@vermont.events</a> to let us know. We will incorporate your site as soon as possible.</p>
+            <p>If you would be interested in a way to have manual control over how your events are added to <span class="site-name-text"></span>, please contact <a href="mailto:info@vermont.events">info@vermont.events</a> to let us know. This is a feature that can be added easily if there is enough interest to justify it.</p>
+          </div>
+        </div>
+      </div>
+    </div>
