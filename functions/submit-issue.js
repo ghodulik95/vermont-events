@@ -1,4 +1,5 @@
 export async function onRequestPost(context) {
+  console.log("REQUEST RECEIVED");
   const { title, body } = await context.request.json();
   const githubToken = context.env.GITHUB_TOKEN;
   const repo = 'ghodulik95/vermont-events';
