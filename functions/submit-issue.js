@@ -1,6 +1,4 @@
 export async function onRequestPost(context) {
-  console.log("REQUEST RECEIVED");
-
   try {
     // Parse JSON payload safely
     const { title, body } = await context.request.json();
