@@ -405,7 +405,7 @@ p {
   text-decoration: none;
   font-family: sans-serif;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 10000;
+  z-index: 9001;
 }
 #floatingButton:hover {
   background: #0056b3;
