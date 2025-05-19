@@ -6,9 +6,18 @@
     "gen-config": "node scripts/generate-config.js",
     "fetch-events": "node fetch-events.js",
     "build": "npm run gen-config && npm run fetch-events",
-    "start": "npm run build && serve public"
+    "start": "npm run build && serve public",
+    "format": "prettier --write \"**/*.{js,json,md,css,html}\"",
+    "lint": "eslint --fix \"**/*.js\"",
+    "dev": "npm run format && npm run lint"
   },
   "dependencies": {
     "node-fetch": "^3.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^8.10.0",
+    "eslint-plugin-import": "^2.31.0",
+    "prettier": "^2.8.8"
   }
 }

@@ -1,0 +1,6 @@
+# dependencies
+node_modules/
+
+# build output
+public/data/events.json
+public/config.json
