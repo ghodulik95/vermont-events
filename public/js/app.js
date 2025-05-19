@@ -530,7 +530,7 @@ function detectMobile() {
   });
 
   // Initial render with default sort (upcoming first)
-  renderEventCards(events, 'asc');
+  filterEvents();
 
   // Remove loader
   const loader = document.getElementById('loader');
