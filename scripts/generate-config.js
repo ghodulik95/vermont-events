@@ -15,6 +15,7 @@ const cfg = {
   mobilizonUrl: process.env.MOBILIZON_URL,
   contactEmail: process.env.CONTACT_EMAIL || "",
   topBannerText: process.env.TOP_BANNER_TEXT || "Alpha testing",
+  splashText: process.env.SPLASH_TEXT || null,
 };
 
 // Write to public/config.json

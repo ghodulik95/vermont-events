@@ -60,9 +60,8 @@
       max-width: 1000px;
       }
       #tabButtons .aboutButton {
-      position: absolute;
-      right: 0;
-      }
+      margin-left: 36px;
+      }     
       .tabButton {
       padding: 8px 16px;
       margin-bottom: 5px;
@@ -371,12 +370,93 @@
       gap: 6px;
     }
 
-    /* About button drops to own row */
-    #tabButtons .aboutButton {          
-      position: static;
-      right: auto;
-      flex: 1 1 100%;
-      order: 99;
-      margin: 4px 0;
-    }
+
   }
+
+  .spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #333;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+
+  #floatingButton {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #007bff;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-family: sans-serif;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 10000;
+  }
+  #floatingButton:hover {
+    background: #0056b3;
+  }
+  
+  .cards-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap; /* optional: allows stacking on small screens */
+  }
+  
+  /* Wrap each label+input */
+#filters .filter-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  margin-bottom: 0.5rem;
+}
+
+/* Ensure labels sit just above inputs */
+#filters .filter-group label {
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+#filters {
+  align-items: center; /* Center all child elements vertically */
+}
+
+/* Style the submit button to fit */
+#applyFilters {
+  padding: 8px 16px;
+  background: #ffc107;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-left: 1rem;
+}
+
+#applyFilters:hover {
+  background: #e0a800;
+}
+
+/* Maintain your existing responsive wrapping */
+@media (max-width: 600px) {
+  #filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #applyFilters {
+    width: 100%;
+    margin-left: 0;
+  }
+}

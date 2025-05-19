@@ -16,20 +16,59 @@
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-    <div id="topBanner">Alpha testing notice: This site is under active development.</div>
-    <h1>Welcome to <span class="site-name-text"></span></h1>
-    <p style="margin-top: 8px;">On this site, community events from around the state are aggregated for your convenience!</p>
-    <div id="filters">
-      <input type="text" id="textSearch" placeholder="Search events...">
-      <input type="date" id="startDate">
-      <input type="date" id="endDate">
-      <select id="townFilter">
-        <option value="">All Towns</option>
-      </select>
-      <select id="categoryFilter">
-        <option value="">All Categories</option>
-      </select>
+    <div id="loader" style="
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: white;
+      display: flex; justify-content: center; align-items: center;
+      z-index: 9999;
+    ">
+      <div class="spinner"></div>
     </div>
+
+
+    <div id="topBanner">Alpha testing notice: This site is under active development.</div>
+    <a href="issue" target="_blank" id="floatingButton">Submit an issue</a>
+    <h1>Welcome to <span class="site-name-text"></span></h1>
+    <p style="margin-top: 8px;" id="splashText">On this site, community events from around the state are aggregated for your convenience!</p>
+    <form id="filters">
+      <div class="filter-group">
+        <label for="textSearch">Search Events</label>
+        <input type="text" id="textSearch" placeholder="Enter keywords…">
+      </div>
+
+      <div class="filter-group">
+        <label for="startDate">Start Date</label>
+        <input type="date" id="startDate">
+      </div>
+
+      <div class="filter-group">
+        <label for="endDate">End Date</label>
+        <input type="date" id="endDate">
+      </div>
+
+      <div class="filter-group">
+        <label for="townFilter">Town</label>
+        <select id="townFilter">
+          <option value="">All Towns</option>
+          <!-- …other options… -->
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="categoryFilter">Category</label>
+        <select id="categoryFilter">
+          <option value="">All Categories</option>
+          <!-- …other options… -->
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label aria-hidden="true">&nbsp;</label>
+        <button type="submit" id="applyFilters">Apply Filters</button>
+      </div>
+    </form>
+
     <div id="tabButtons">
       <button class="tabButton" data-tab="calendarTab">Calendar</button>
       <button class="tabButton" data-tab="mapTab">Map</button>
@@ -45,15 +84,25 @@
       <div id="map"></div>
     </div>
     <div id="cardsTab" class="tabContent" style="display: none;">
-      <div class="cards-toggle">
-        <div class="advanced-toggle">
-          <span class="tooltip">?
-          <span class="tooltiptext">
-          Only show events missing location info (which do not appear in map view)
-          </span>
-          </span>
-          <input type="checkbox" id="hideWithLocation">
-          <label for="hideWithLocation">Hide events with location data</label>
+      <div class="cards-controls">
+        <div class="cards-sort">
+          <label for="sortOrder">Sort by:</label>
+          <select id="sortOrder">
+            <option value="asc" selected>Upcoming first</option>
+            <option value="desc">Furthest first</option>
+          </select>
+        </div>
+
+        <div class="cards-toggle">
+          <div class="advanced-toggle">
+            <span class="tooltip">?
+            <span class="tooltiptext">
+            Only show events missing location info (which do not appear in map view)
+            </span>
+            </span>
+            <input type="checkbox" id="hideWithLocation">
+            <label for="hideWithLocation">Hide events with location data</label>
+          </div>
         </div>
       </div>
       <div id="eventCards"></div>

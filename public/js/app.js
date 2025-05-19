@@ -23,8 +23,8 @@ function detectMobile() {
   document.getElementById('aboutTab').outerHTML = about;
   document.title = config.siteTitle;
   
-  function insertText(className, text) {
-    document.querySelectorAll("." + className).forEach(el => {
+  function insertText(className, text, prefix=".") {
+    document.querySelectorAll(prefix + className).forEach(el => {
       el.textContent = text;
     });
   }
@@ -47,10 +47,12 @@ function detectMobile() {
   
   insertLink("mobilizon-url", config.mobilizonUrl, config.mobilizonUrl.replace(/^https?:\/\//, ''));
   insertText("site-name-text", config.siteTitle);
+  insertText("topBanner", config.topBannerText, "#");
+  if (config.splashText !== null) {
+    insertText("splashText", config.splashText, "#");
+  }
 
-
-  // Site title
-  //document.getElementById('site-title').textContent = config.siteTitle
+  document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
   
   // Initialize global variables for map and calendar instances
       let map = null;
@@ -139,24 +141,27 @@ function detectMobile() {
         });
       }
       
-      // Render events as cards, calendar entries, and map markers
-      function renderEvents(events) {
-        // Event cards
+      function renderEventCards(events, sortOrder = 'asc') {
         const container = document.getElementById("eventCards");
         container.innerHTML = events.length ? "" : "<p>No events found.</p>";
-        // create a card for each event with title, date, location, and source domain
-        events.forEach(event => {
-          const card = document.createElement("div");
 
-          // build title and date
+        const sortedEvents = [...events].sort((a, b) => {
+          const timeA = new Date(a.beginsOn).getTime();
+          const timeB = new Date(b.beginsOn).getTime();
+          return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+        });
+
+        sortedEvents.forEach(event => {
+          const card = document.createElement("div");
           const titleEl = document.createElement("h3");
           titleEl.textContent = event.title;
+
           const dateEl = document.createElement("p");
           dateEl.innerHTML = `<strong>Date:</strong> ${new Date(event.beginsOn).toLocaleString()}`;
-          // location line
+
           const locEl = document.createElement("p");
           locEl.innerHTML = `<strong>Location:</strong> ${event.address?.locality || 'Unknown'}`;
-          // source domain
+
           const domain = event.onlineAddress
             ? new URL(event.onlineAddress).hostname
             : 'Unknown source';
@@ -165,7 +170,6 @@ function detectMobile() {
 
           card.append(titleEl, dateEl, locEl, srcEl);
 
-          // only add description if it doesn't start with "No description"
           if (event.description && !event.description.startsWith("No description")) {
             const descEl = document.createElement("p");
             descEl.classList.add("card-description");
@@ -174,31 +178,32 @@ function detectMobile() {
             const expandBtn = document.createElement("span");
             expandBtn.classList.add("expand-btn");
             expandBtn.textContent = "+";
-
-            // toggle full text on click
             expandBtn.addEventListener("click", e => {
               e.stopPropagation();
               const isExpanded = descEl.classList.toggle("expanded");
               expandBtn.textContent = isExpanded ? "−" : "+";
             });
 
-            // wrapping container so the expand button sits on top
             const wrapper = document.createElement("div");
             wrapper.style.position = "relative";
             wrapper.append(descEl, expandBtn);
             card.append(wrapper);
           }
 
-          // open link when clicking the card
           card.addEventListener("click", () => {
-            if (event.onlineAddress) window.open(event.onlineAddress, "_blank");
+            const link = event.onlineAddress ? event.onlineAddress : event.url;
+            if (link) window.open(link, "_blank");
           });
 
           container.appendChild(card);
         });
-
+      }
 
       
+      // Render events as cards, calendar entries, and map markers
+      function renderEvents(events) {
+        renderEventCards(events);
+        
         // Calendar setup
         const calEvents = events.map(event => ({
           id: event.id,
@@ -207,7 +212,7 @@ function detectMobile() {
           extendedProps: {
             username: event.username,
             address: event.address,
-            url: event.onlineAddress
+            url: event.onlineAddress ? event.onlineAddress : event.url
           }
         }));
         const calendarEl = document.getElementById("calendar");
@@ -343,10 +348,11 @@ function detectMobile() {
               const domain = event.onlineAddress
                 ? new URL(event.onlineAddress).hostname
                 : 'Unknown source';
+              const link = event.onlineAddress ? event.onlineAddress : event.url;
               marker.bindPopup(
                 `<strong>${event.title}</strong><br>
                  ${new Date(event.beginsOn).toLocaleString()}<br>
-                 <a href="${event.onlineAddress}" target="_blank">View Event</a>`
+                 <a href="${link}" target="_blank">View Event</a>`
               );
               // no click-handler needed: Leaflet will open the popup on tap
 
@@ -443,7 +449,6 @@ function detectMobile() {
             const doHide = targetId === "cardsTab" && hideWithLocation.checked;
             
             const filteredIgnoreCat = events.filter(event => {
-              const hasLink = event.onlineAddress?.length > 0;
               const d = new Date(event.beginsOn);
               const matchText =
                 event.title?.toLowerCase().includes(text) ||
@@ -454,11 +459,10 @@ function detectMobile() {
               const inDateRange = (!startDate.value || d >= start) && (!endDate.value || d <= end);
               const matchLocation = !doHide || !event.address.geom;
       
-              return hasLink && matchText && matchTown && inDateRange && matchLocation;
+              return matchText && matchTown && inDateRange && matchLocation;
             });
             
             const filteredIgnoreTown = events.filter(event => {
-              const hasLink = event.onlineAddress?.length > 0;
               const d = new Date(event.beginsOn);
               const matchText =
                 event.title?.toLowerCase().includes(text) ||
@@ -469,11 +473,10 @@ function detectMobile() {
               const inDateRange = (!startDate.value || d >= start) && (!endDate.value || d <= end);
               const matchLocation = !doHide || !event.address.geom;
       
-              return hasLink && matchText && matchCategory && inDateRange && matchLocation;
+              return matchText && matchCategory && inDateRange && matchLocation;
             });
       
             const filtered = events.filter(event => {
-              const hasLink = event.onlineAddress?.length > 0;
               const d = new Date(event.beginsOn);
               const matchText =
                 event.title?.toLowerCase().includes(text) ||
@@ -485,17 +488,29 @@ function detectMobile() {
               const inDateRange = (!startDate.value || d >= start) && (!endDate.value || d <= end);
               const matchLocation = !doHide || !event.address.geom;
       
-              return hasLink && matchText && matchTown && matchCategory && inDateRange && matchLocation;
+              return matchText && matchTown && matchCategory && inDateRange && matchLocation;
             });
 
             updateFilterOptions(filteredIgnoreCat, filteredIgnoreTown);
             renderEvents(filtered);
           }
       
-          // Attach filter listeners
-          [textSearch, startDate, endDate, townFilter, categoryFilter, hideWithLocation]
-            .forEach(el => el.addEventListener("input", filterEvents));
-          document.querySelectorAll(".tabButton").forEach(button => {
-            button.addEventListener("click", filterEvents);
+          // Listen to submit filter button
+          document.getElementById("applyFilters").addEventListener("click", e => {
+            e.preventDefault();
+            filterEvents();
           });
+
+          // Listen to event card sort order
+          const sortOrderSelect = document.getElementById('sortOrder');
+          sortOrderSelect.addEventListener('change', () => {
+            renderEventCards(events, sortOrderSelect.value);
+          });
+
+          // Initial render with default sort (upcoming first)
+          renderEventCards(events, 'asc');
+
+          // Remove loader
+          const loader = document.getElementById('loader');
+          if (loader) loader.remove();
 })();
