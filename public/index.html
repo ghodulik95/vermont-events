@@ -1,50 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mobilizon Event Fetcher</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <link rel="stylesheet" href="./css/style.css">
-</head>
-<body>
-    <div id="loader" style="
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: white;
-      display: flex; justify-content: center; align-items: center;
-      z-index: 9999;
-    ">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mobilizon Event Fetcher</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <div
+      id="loader"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      "
+    >
       <div class="spinner"></div>
     </div>
 
-
-    <div id="topBanner">Alpha testing notice: This site is under active development.</div>
+    <div id="topBanner">
+      Alpha testing notice: This site is under active development.
+    </div>
     <a href="issue" target="_blank" id="floatingButton">Submit an issue</a>
     <h1>Welcome to <span class="site-name-text"></span></h1>
-    <p style="margin-top: 8px;" id="splashText">On this site, community events from around the state are aggregated for your convenience!</p>
+    <p style="margin-top: 8px" id="splashText">
+      On this site, community events from around the state are aggregated for
+      your convenience!
+    </p>
     <form id="filters">
       <div class="filter-group">
         <label for="textSearch">Search Events</label>
-        <input type="text" id="textSearch" placeholder="Enter keywords…">
+        <input type="text" id="textSearch" placeholder="Enter keywords…" />
       </div>
 
       <div class="filter-group">
         <label for="startDate">Start Date</label>
-        <input type="date" id="startDate">
+        <input type="date" id="startDate" />
       </div>
 
       <div class="filter-group">
         <label for="endDate">End Date</label>
-        <input type="date" id="endDate">
+        <input type="date" id="endDate" />
       </div>
 
       <div class="filter-group">
@@ -62,7 +92,7 @@
           <!-- …other options… -->
         </select>
       </div>
-      
+
       <div class="filter-group">
         <label aria-hidden="true">&nbsp;</label>
         <button type="submit" id="applyFilters">Apply Filters</button>
@@ -79,11 +109,11 @@
       <div id="calendarIndicators" class="view-indicators"></div>
       <div id="calendar"></div>
     </div>
-    <div id="mapTab" class="tabContent" style="display: none;">
+    <div id="mapTab" class="tabContent" style="display: none">
       <div id="mapIndicators" class="view-indicators"></div>
       <div id="map"></div>
     </div>
-    <div id="cardsTab" class="tabContent" style="display: none;">
+    <div id="cardsTab" class="tabContent" style="display: none">
       <div class="cards-controls">
         <div class="cards-sort">
           <label for="sortOrder">Sort by:</label>
@@ -95,12 +125,14 @@
 
         <div class="cards-toggle">
           <div class="advanced-toggle">
-            <span class="tooltip">?
-            <span class="tooltiptext">
-            Only show events missing location info (which do not appear in map view)
+            <span class="tooltip"
+              >?
+              <span class="tooltiptext">
+                Only show events missing location info (which do not appear in
+                map view)
+              </span>
             </span>
-            </span>
-            <input type="checkbox" id="hideWithLocation">
+            <input type="checkbox" id="hideWithLocation" />
             <label for="hideWithLocation">Hide events with location data</label>
           </div>
         </div>
@@ -109,7 +141,6 @@
     </div>
     <div id="aboutTab" class="tabContent"><!-- loaded by JS --></div>
 
-
-  <script src="./js/app.js"></script>
-</body>
+    <script src="./js/app.js"></script>
+  </body>
 </html>

@@ -1,67 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Submit an Issue</title>
-  <link rel="stylesheet" href="./css/issue-style.css">
-</head>
-<body>
-  <main class="issue-container">
-    <h1>Report an Issue</h1>
-    <form id="issueForm" class="issue-form">
-      <label for="category">Category</label>
-      <select id="category" required>
-        <option value="" disabled selected>Select one…</option>
-        <option value="Bug">Bug</option>
-        <option value="Feature Request">Feature Request</option>
-        <option value="Website Suggestion">Website Suggestion for Scraping</option>
-        <option value="Removal Request">Event/Site Removal Request</option>
-        <option value="Report Incorrect Information">Report Incorrect Information</option>
-      </select>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Submit an Issue</title>
+    <link rel="stylesheet" href="./css/issue-style.css" />
+  </head>
+  <body>
+    <main class="issue-container">
+      <h1>Report an Issue</h1>
+      <form id="issueForm" class="issue-form">
+        <label for="category">Category</label>
+        <select id="category" required>
+          <option value="" disabled selected>Select one…</option>
+          <option value="Bug">Bug</option>
+          <option value="Feature Request">Feature Request</option>
+          <option value="Website Suggestion">
+            Website Suggestion for Scraping
+          </option>
+          <option value="Removal Request">Event/Site Removal Request</option>
+          <option value="Report Incorrect Information">
+            Report Incorrect Information
+          </option>
+        </select>
 
-      <label for="title">Title</label>
-      <input type="text" id="title" placeholder="Short title" required>
+        <label for="title">Title</label>
+        <input type="text" id="title" placeholder="Short title" required />
 
-      <label for="body">Details</label>
-      <textarea id="body" placeholder="Describe your issue…" rows="5" required></textarea>
+        <label for="body">Details</label>
+        <textarea
+          id="body"
+          placeholder="Describe your issue…"
+          rows="5"
+          required
+        ></textarea>
 
-      <button type="submit" class="btn">Submit</button>
-    </form>
-    <div id="message" class="message"></div>
-  </main>
+        <button type="submit" class="btn">Submit</button>
+      </form>
+      <div id="message" class="message"></div>
+    </main>
 
-  <script>
-  document.getElementById('issueForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const title    = document.getElementById('title').value.trim();
-    const body     = document.getElementById('body').value.trim();
-    const category = document.getElementById('category').value;
+    <script>
+      document
+        .getElementById('issueForm')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const title = document.getElementById('title').value.trim();
+          const body = document.getElementById('body').value.trim();
+          const category = document.getElementById('category').value;
 
-    const payload = { title, body, category };
-    const response = await fetch('/submit-issue', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+          const payload = { title, body, category };
+          const response = await fetch('/submit-issue', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
 
-    let result;
-    try {
-      result = await response.json();
-    } catch {
-      result = { success: false, error: await response.text() };
-    }
+          let result;
+          try {
+            result = await response.json();
+          } catch {
+            result = { success: false, error: await response.text() };
+          }
 
-    const msgEl = document.getElementById('message');
-    if (response.ok && result.success) {
-      msgEl.textContent = '✅ Issue submitted successfully!';
-      msgEl.className = 'message success';
-      e.target.reset();
-    } else {
-      msgEl.textContent = `❌ Failed: ${result.error || 'Unknown error'}`;
-      msgEl.className = 'message error';
-    }
-  });
-  </script>
-</body>
+          const msgEl = document.getElementById('message');
+          if (response.ok && result.success) {
+            msgEl.textContent = '✅ Issue submitted successfully!';
+            msgEl.className = 'message success';
+            e.target.reset();
+          } else {
+            msgEl.textContent = `❌ Failed: ${result.error || 'Unknown error'}`;
+            msgEl.className = 'message error';
+          }
+        });
+    </script>
+  </body>
 </html>
