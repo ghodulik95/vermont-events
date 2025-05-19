@@ -152,6 +152,9 @@ p {
   .tabContent {
     padding: 0.5rem;
   }
+  .aboutButton {
+    margin-left: 0px;
+  }
   #map {
     height: 400px;
   }
@@ -189,6 +192,10 @@ p {
   background: #f0f0f0;
   border-left-color: #ffc107;
   font-weight: 600;
+}
+.about-content p {
+  margin-bottom: 10px;
+  text-indent: 2em;
 }
 /* Banner at top */
 #topBanner {
