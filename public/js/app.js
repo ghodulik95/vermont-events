@@ -15,9 +15,9 @@ function detectMobile() {
 
 (async () => {
   const [config, events, about] = await Promise.all([
-    fetch('/config.json').then((r) => r.json()),
-    fetch('/data/events.json').then((r) => r.json()),
-    fetch('/partials/about-tab.html').then((r) => r.text()),
+    fetch('/config.json?v=1').then((r) => r.json()),
+    fetch('/data/events.json?v=1').then((r) => r.json()),
+    fetch('/partials/about-tab.html?v=1').then((r) => r.text()),
   ]);
 
   document.getElementById('aboutTab').outerHTML = about;
