@@ -70,9 +70,9 @@ function isValidUrl(value) {
 
 (async () => {
   const [config, events, about] = await Promise.all([
-    fetch('/config.json?v=1').then((r) => r.json()),
-    fetch('/data/events.json?v=1').then((r) => r.json()),
-    fetch('/partials/about-tab.html?v=1').then((r) => r.text()),
+    fetch('/config.json?v=2').then((r) => r.json()),
+    fetch('/data/events.json?v=2').then((r) => r.json()),
+    fetch('/partials/about-tab.html?v=2').then((r) => r.text()),
   ]);
   document.getElementById('aboutTab').outerHTML = about;
   document.title = config.siteTitle;
