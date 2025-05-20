@@ -5,10 +5,13 @@ async function fetchExtraEventInfo(eventId, endpoint) {
   const query = `
     query GetEvent($uuid: UUID!) {
       event(uuid: $uuid) {
-        onlineAddress
+        id
         description
+        onlineAddress
+        externalParticipationUrl
       }
     }
+
   `;
   const response = await fetch(`${endpoint}/api`, {
     method: 'POST',
@@ -19,6 +22,8 @@ async function fetchExtraEventInfo(eventId, endpoint) {
   return {
     onlineAddress: json?.data?.event?.onlineAddress || null,
     description: json?.data?.event?.description || null,
+    externalParticipationUrl:
+      json?.data?.event?.externalParticipationUrl || null,
   };
 }
 
@@ -30,10 +35,12 @@ async function simplifyEvents(rawData, endpoint) {
   return Promise.all(
     events.map(async (event) => {
       const extraData = await fetchExtraEventInfo(event.uuid, endpoint);
+
       return {
         id: event.id,
         title: event.title,
         beginsOn: event.beginsOn,
+        endsOn: event.endsOn || null,
         username: event.attributedTo?.preferredUsername || null,
         url: event.url,
         onlineAddress: extraData.onlineAddress,
@@ -48,6 +55,7 @@ async function simplifyEvents(rawData, endpoint) {
           country: event.physicalAddress?.country || null,
         },
         category: event.category || 'UNCATEGORIZED',
+        externalParticipationUrl: extraData.externalParticipationUrl || null,
       };
     })
   );
@@ -67,6 +75,7 @@ async function main() {
           title
           url
           beginsOn
+          endsOn
           category
           physicalAddress {
             ...AdressFragment

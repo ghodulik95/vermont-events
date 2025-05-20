@@ -13,13 +13,67 @@ function detectMobile() {
   return /Android|iPhone|iPad|iPod|Opera Mini/i.test(navigator.userAgent);
 }
 
+function getRedirectHTML(rawEvent, truncate = null) {
+  const { externalParticipationUrl, onlineAddress, url } = rawEvent;
+
+  const links = [];
+
+  if (isValidUrl(externalParticipationUrl)) {
+    links.push(createLink(externalParticipationUrl, truncate));
+  }
+
+  if (isValidUrl(onlineAddress)) {
+    if (
+      !isValidUrl(externalParticipationUrl) ||
+      getDomain(onlineAddress) != getDomain(externalParticipationUrl)
+    ) {
+      links.push(createLink(onlineAddress, truncate));
+    }
+  }
+
+  if (links.length === 0 && url) {
+    // Assume `url` is always valid
+    links.push(createLink(url, truncate));
+  }
+
+  return links.join(', ');
+}
+
+function createLink(linkUrl, truncate) {
+  const domain = getDomain(linkUrl);
+  const label =
+    truncate && domain.length > truncate
+      ? domain.slice(0, truncate) + '...'
+      : domain;
+
+  return `<a href="${linkUrl}" target="_blank">${label}</a>`;
+}
+
+function getDomain(url) {
+  try {
+    const hostname = new URL(url).hostname;
+    return hostname.startsWith('www.') ? hostname.slice(4) : hostname;
+  } catch (e) {
+    return 'Invalid URL';
+  }
+}
+
+function isValidUrl(value) {
+  if (typeof value !== 'string' || value.trim() === '') return false;
+  try {
+    new URL(value);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 (async () => {
   const [config, events, about] = await Promise.all([
     fetch('/config.json?v=1').then((r) => r.json()),
     fetch('/data/events.json?v=1').then((r) => r.json()),
     fetch('/partials/about-tab.html?v=1').then((r) => r.text()),
   ]);
-
   document.getElementById('aboutTab').outerHTML = about;
   document.title = config.siteTitle;
 
@@ -148,11 +202,10 @@ function detectMobile() {
         event.address?.locality || 'Unknown'
       }`;
 
-      const domain = event.onlineAddress
-        ? new URL(event.onlineAddress).hostname
-        : 'Unknown source';
       const srcEl = document.createElement('p');
-      srcEl.innerHTML = `<strong>Source:</strong> ${domain}`;
+      srcEl.innerHTML = `<strong>More details at:</strong> ${getRedirectHTML(
+        event
+      )}`;
 
       card.append(titleEl, dateEl, locEl, srcEl);
 
@@ -178,11 +231,12 @@ function detectMobile() {
         wrapper.append(descEl, expandBtn);
         card.append(wrapper);
       }
-
+      /*
       card.addEventListener('click', () => {
-        const link = event.onlineAddress ? event.onlineAddress : event.url;
+        const link = getRedirectHTML(event);
         if (link) window.open(link, '_blank');
       });
+      */
 
       container.appendChild(card);
     });
@@ -197,10 +251,11 @@ function detectMobile() {
       id: event.id,
       title: event.title,
       start: event.beginsOn,
+      end: event.endsOn !== null ? event.endsOn : undefined,
       extendedProps: {
         username: event.username,
         address: event.address,
-        url: event.onlineAddress ? event.onlineAddress : event.url,
+        linkText: getRedirectHTML(event, 12),
       },
     }));
     const calendarEl = document.getElementById('calendar');
@@ -237,7 +292,7 @@ function detectMobile() {
               <h4>${info.event.title}</h4>
               <p>${start}</p>
               <p>${addr}</p>
-              <a href="${info.event.extendedProps.url}" target="_blank">View Event</a>
+              More details at ${info.event.extendedProps.linkText}
             `;
 
         // Temporarily position it off-screen so we can measure it
@@ -275,9 +330,10 @@ function detectMobile() {
         setTimeout(() => document.body.addEventListener('click', remover), 0);
       },
       eventDidMount: function (info) {
-        const { title, start, extendedProps } = info.event;
+        const { title, start, extendedProps, end } = info.event;
         const address = extendedProps.address;
         const startTime = new Date(start).toLocaleString();
+        const endTime = end ? ` – ${new Date(end).toLocaleString()}` : '';
         const addressStr =
           address?.description ||
           (address?.street || '') +
@@ -292,7 +348,7 @@ function detectMobile() {
           : 'Unknown source';
         info.el.setAttribute(
           'title',
-          `${title}\n${startTime}\n${addressStr}\n${domain}`
+          `${title}\n${startTime}${endTime}\n${addressStr}\n${domain}`
         );
       },
     });
@@ -354,15 +410,15 @@ function detectMobile() {
         const [lng, lat] = event.address.geom.split(';').map(Number);
         if (!isNaN(lat) && !isNaN(lng)) {
           const marker = L.marker([lat, lng]);
-          const domain = event.onlineAddress
-            ? new URL(event.onlineAddress).hostname
-            : 'Unknown source';
-          const link = event.onlineAddress ? event.onlineAddress : event.url;
+          const beginsOnStr = new Date(event.beginsOn).toLocaleString();
+          const endsOnStr = event.endsOn
+            ? ` – ${new Date(event.endsOn).toLocaleString()}`
+            : '';
+
           marker.bindPopup(
             `<strong>${event.title}</strong><br>
-                 ${new Date(event.beginsOn).toLocaleString()}<br>
-                 <strong>Source:</strong> ${domain}<br>
-                 <a href="${link}" target="_blank">View Event</a>`
+             ${beginsOnStr}${endsOnStr}<br>
+             More details at ${getRedirectHTML(event)}`
           );
           // no click-handler needed: Leaflet will open the popup on tap
 
