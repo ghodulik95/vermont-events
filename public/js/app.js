@@ -282,7 +282,10 @@ function isValidUrl(value) {
         const pop = document.createElement('div');
         pop.id = 'fcPopover';
         pop.className = 'fc-popover';
-        const start = new Date(info.event.start).toLocaleString();
+        const startTime = new Date(info.event.start).toLocaleString();
+        const endTime = info.event.end
+          ? ` – ${new Date(info.event.end).toLocaleString()}`
+          : '';
         const addr =
           info.event.extendedProps.address.description ||
           (info.event.extendedProps.address.street || '') +
@@ -290,7 +293,7 @@ function isValidUrl(value) {
             (info.event.extendedProps.address.locality || '');
         pop.innerHTML = `
               <h4>${info.event.title}</h4>
-              <p>${start}</p>
+              <p>${startTime}${endTime}</p>
               <p>${addr}</p>
               More details at ${info.event.extendedProps.linkText}
             `;
