@@ -68,14 +68,72 @@ function isValidUrl(value) {
   }
 }
 
+function surveyComplete(survey) {
+  alert(
+    'Thank you for completing this for. Please note that the function of this form is inactive and your information was not sent.'
+  );
+  //saveSurveyResults(
+  //    "https://your-web-service.com/" + SURVEY_ID,
+  //    survey.data
+  //)
+}
+
+function saveSurveyResults(url, json) {
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8',
+    },
+    body: JSON.stringify(json),
+  })
+    .then((response) => {
+      if (response.ok) {
+        // Handle success
+      } else {
+        // Handle error
+      }
+    })
+    .catch((error) => {
+      // Handle error
+    });
+}
+
 (async () => {
-  const [config, events, about] = await Promise.all([
-    fetch('/config.json?v=2').then((r) => r.json()),
-    fetch('/data/events.json?v=2').then((r) => r.json()),
-    fetch('/partials/about-tab.html?v=2').then((r) => r.text()),
+  const [config, events, about, createEventSurveyJS] = await Promise.all([
+    fetch('/config.json?v=3').then((r) => r.json()),
+    fetch('/data/events.json?v=3').then((r) => r.json()),
+    fetch('/partials/about-tab.html?v=3').then((r) => r.text()),
+    fetch('/data/createEventSurveyJS.json?v=1').then((r) => r.json()),
   ]);
   document.getElementById('aboutTab').outerHTML = about;
   document.title = config.siteTitle;
+
+  // Create the survey
+  const createEventTabEl = document.getElementById('createEventTab');
+  const survey = new Survey.Model(createEventSurveyJS);
+  survey.onComplete.add(surveyComplete);
+  // Customize the thank-you message and add a button to restart
+  survey.completedHtml = `
+  <h3>Thank you for submitting your event!</h3>
+  <p>We'll review it and get back to you soon.</p>
+  <button id="restartSurveyBtn" style="margin-top:1em;">Submit Another Event</button>
+`;
+
+  survey.render(createEventTabEl);
+
+  // Attach handler after survey completes
+  survey.onComplete.add(function () {
+    setTimeout(() => {
+      const restartBtn = document.getElementById('restartSurveyBtn');
+      if (restartBtn) {
+        restartBtn.onclick = () => {
+          survey.clear(); // Clear responses
+          survey.currentPageNo = 0; // Go back to first page
+          survey.render('createEventTab'); // Re-render
+        };
+      }
+    }, 0); // Wait for DOM to update
+  });
 
   function insertText(className, text, prefix = '.') {
     document.querySelectorAll(prefix + className).forEach((el) => {
