@@ -152,8 +152,8 @@ p {
   .tabContent {
     padding: 0.5rem;
   }
-  .aboutButton {
-    margin-left: 0px;
+  #tabButtons .aboutButton {
+    margin: 0 4px;
   }
   #map {
     height: 400px;
