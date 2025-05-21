@@ -579,6 +579,11 @@ function isValidUrl(value) {
     filterEvents();
   });
 
+  // Attach filter listeners
+  document
+    .getElementById('hideWithLocation')
+    .addEventListener('input', filterEvents);
+
   // Listen to event card sort order
   const sortOrderSelect = document.getElementById('sortOrder');
   sortOrderSelect.addEventListener('change', () => {
