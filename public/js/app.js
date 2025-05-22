@@ -69,13 +69,7 @@ function isValidUrl(value) {
 }
 
 function surveyComplete(survey) {
-  alert(
-    'Thank you for completing this for. Please note that the function of this form is inactive and your information was not sent.'
-  );
-  //saveSurveyResults(
-  //    "https://your-web-service.com/" + SURVEY_ID,
-  //    survey.data
-  //)
+  saveSurveyResults('/create-event', survey.data);
 }
 
 function saveSurveyResults(url, json) {
@@ -87,14 +81,18 @@ function saveSurveyResults(url, json) {
     body: JSON.stringify(json),
   })
     .then((response) => {
+      const warningEl = document.getElementById('createEventWarning');
       if (response.ok) {
-        // Handle success
+        warningEl.textContent = 'Your event has successfully been submitted.';
       } else {
-        // Handle error
+        warningEl.textContent = 'There was an error submitting your event.';
+        console.log(response);
       }
     })
     .catch((error) => {
-      // Handle error
+      const warningEl = document.getElementById('createEventWarning');
+      warningEl.textContent = 'There was an error submitting your event.';
+      console.log(error);
     });
 }
 
@@ -130,6 +128,9 @@ function saveSurveyResults(url, json) {
           survey.clear(); // Clear responses
           survey.currentPageNo = 0; // Go back to first page
           survey.render('createEventTab'); // Re-render
+
+          const warningEl = document.getElementById('createEventWarning');
+          warningEl.textContent = '';
         };
       }
     }, 0); // Wait for DOM to update
