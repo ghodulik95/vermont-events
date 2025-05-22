@@ -1,11 +1,5 @@
 // functions/submit.js
 export async function onRequestPost({ request, env }) {
- console.log(
-   "DROPBOX_TOKEN prefix:", 
-   env.DROPBOX_TOKEN?.slice(0, 6),
-   "→ dropping into path /event-queue/"
- );
-
   // 1. Only allow JSON POST
   if (
     request.headers.get('content-type')?.includes('application/json') === false
