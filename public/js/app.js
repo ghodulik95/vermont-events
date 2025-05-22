@@ -67,34 +67,40 @@ function isValidUrl(value) {
     return false;
   }
 }
-
 function surveyComplete(survey) {
   saveSurveyResults('/create-event', survey.data);
 }
 
-function saveSurveyResults(url, json) {
-  fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json;charset=UTF-8',
-    },
-    body: JSON.stringify(json),
-  })
-    .then((response) => {
-      const warningEl = document.getElementById('createEventWarning');
-      if (response.ok) {
-        warningEl.textContent = 'Your event has successfully been submitted.';
-      } else {
-        warningEl.textContent = 'There was an error submitting your event.';
-        console.log(response);
-      }
-    })
-    .catch((error) => {
-      const warningEl = document.getElementById('createEventWarning');
-      warningEl.textContent = 'There was an error submitting your event.';
-      console.log(error);
+async function saveSurveyResults(url, json) {
+  const warningEl = document.getElementById('createEventWarning');
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8',
+      },
+      body: JSON.stringify(json),
     });
+
+    if (response.ok) {
+      warningEl.textContent = 'Your event has successfully been submitted.';
+    } else {
+      warningEl.textContent = 'There was an error submitting your event.';
+      let result;
+      try {
+        result = await response.json();
+      } catch {
+        result = { success: false, error: await response.text() };
+      }
+      console.log(result);
+    }
+  } catch (error) {
+    warningEl.textContent = 'There was an error submitting your event.';
+    console.log(error);
+  }
 }
+
 
 (async () => {
   const [config, events, about, createEventSurveyJS] = await Promise.all([
