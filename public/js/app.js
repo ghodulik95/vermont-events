@@ -91,7 +91,7 @@ async function saveSurveyResults(url, json) {
       try {
         result = await response.json();
       } catch {
-        result = { success: false, error: await response.text() };
+        result = { success: false, error: response };
       }
       console.log(result);
     }
