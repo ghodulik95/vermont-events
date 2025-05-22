@@ -87,19 +87,27 @@ async function saveSurveyResults(url, json) {
       warningEl.textContent = 'Your event has successfully been submitted.';
     } else {
       warningEl.textContent = 'There was an error submitting your event.';
-      let result;
+
+      // Attempt to decode the body
       try {
-        result = await response.json();
-      } catch {
-        result = { success: false, error: response };
+        const clone = response.clone(); // clone before reading in case .json() fails
+        const json = await clone.json();
+        console.error("Server responded with error JSON:", json);
+      } catch (jsonErr) {
+        try {
+          const text = await response.text();
+          console.error("Server responded with plain text:", text);
+        } catch (textErr) {
+          console.error("Could not read error response body at all", textErr);
+        }
       }
-      console.log(result);
     }
-  } catch (error) {
-    warningEl.textContent = 'There was an error submitting your event.';
-    console.log(error);
+  } catch (networkErr) {
+    warningEl.textContent = 'There was a network error submitting your event.';
+    console.error("Network or fetch error:", networkErr);
   }
 }
+
 
 
 (async () => {
