@@ -57,7 +57,7 @@
             },
             {
               "value": "file",
-              "text": ".ICS Upload(s) (one or more)"
+              "text": ".ICS Upload(s)"
             },
             {
               "value": "custom",
@@ -91,7 +91,7 @@
           "name": "url_list",
           "visibleIf": "{public} = true and {upload_method} = 'url' and {facebook} = 'no'",
           "title": "Paste one or more URLs",
-          "description": "If adding multiple URLs, put each URL on a separate line.\nWeb pages and .ics links are supported.\nThese links will be automatically queried upon moderator approval.\nPlease note that this process cannot be automated with social media links, so social media links may have a delay in processing. To speed up processing of social media links, we recommend you use the manual event add option.\n",
+          "description": "If adding multiple URLs, put each URL on a separate line.\nWeb pages and .ics links are supported.\nThese links will be automatically queried upon moderator approval.\nPlease note that this process cannot be automated with links to social media posts, so social media posts may have a delay in processing. To speed up processing of social media links, we recommend you use the manual event add option, or upload a .ICS version of the event if the social media platform allows .ICS export.\n",
           "isRequired": true,
           "placeholder": "https://www.myfavoritelocalcoffeeshop.com/events"
         },
@@ -1185,6 +1185,21 @@
                 }
               ],
               "showOtherItem": true
+            },
+            {
+              "type": "radiogroup",
+              "name": "other_events_platforms",
+              "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_contributor} = false",
+              "title": "Would you like to see other events platforms dedicated to specific regions (e.g. Central VT) or communities (e.g. LGBTQ) or interest groups (e.g. gaming, dancing, child-friendly)?",
+              "resetValueIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17' or {age_range} = 'prefer_not_say'",
+              "choices": [
+                {
+                  "value": "no",
+                  "text": "No, a general platform works best for me"
+                }
+              ],
+              "showOtherItem": true,
+              "otherText": "Yes (please specify)"
             },
             {
               "type": "boolean",
