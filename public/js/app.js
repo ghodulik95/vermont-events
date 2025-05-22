@@ -68,16 +68,17 @@ function isValidUrl(value) {
   }
 }
 function surveyComplete(survey) {
-  saveSurveyResults('/create-event', survey.data);
-}
-
-async function saveSurveyResults(url, json) {
   const warningEl = document.getElementById('createEventWarning');
 
   // Show loading spinner
   warningEl.innerHTML = `
     <span style="display: inline-block; width: 1em; height: 1em; border: 2px solid #ccc; border-top: 2px solid #333; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 0.5em;"></span>
     Submitting your event...`;
+  saveSurveyResults('/create-event', survey.data);
+}
+
+async function saveSurveyResults(url, json) {
+  const warningEl = document.getElementById('createEventWarning');
 
   try {
     const response = await fetch(url, {
