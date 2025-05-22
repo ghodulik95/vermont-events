@@ -74,6 +74,11 @@ function surveyComplete(survey) {
 async function saveSurveyResults(url, json) {
   const warningEl = document.getElementById('createEventWarning');
 
+  // Show loading spinner
+  warningEl.innerHTML = `
+    <span style="display: inline-block; width: 1em; height: 1em; border: 2px solid #ccc; border-top: 2px solid #333; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 0.5em;"></span>
+    Submitting your event...`;
+
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -92,30 +97,28 @@ async function saveSurveyResults(url, json) {
       try {
         const clone = response.clone(); // clone before reading in case .json() fails
         const json = await clone.json();
-        console.error("Server responded with error JSON:", json);
+        console.error('Server responded with error JSON:', json);
       } catch (jsonErr) {
         try {
           const text = await response.text();
-          console.error("Server responded with plain text:", text);
+          console.error('Server responded with plain text:', text);
         } catch (textErr) {
-          console.error("Could not read error response body at all", textErr);
+          console.error('Could not read error response body at all', textErr);
         }
       }
     }
   } catch (networkErr) {
     warningEl.textContent = 'There was a network error submitting your event.';
-    console.error("Network or fetch error:", networkErr);
+    console.error('Network or fetch error:', networkErr);
   }
 }
 
-
-
 (async () => {
   const [config, events, about, createEventSurveyJS] = await Promise.all([
-    fetch('/config.json?v=3').then((r) => r.json()),
-    fetch('/data/events.json?v=3').then((r) => r.json()),
-    fetch('/partials/about-tab.html?v=3').then((r) => r.text()),
-    fetch('/data/createEventSurveyJS.json?v=1').then((r) => r.json()),
+    fetch('/config.json?v=4').then((r) => r.json()),
+    fetch('/data/events.json?v=4').then((r) => r.json()),
+    fetch('/partials/about-tab.html?v=4').then((r) => r.text()),
+    fetch('/data/createEventSurveyJS.json?v=2').then((r) => r.json()),
   ]);
   document.getElementById('aboutTab').outerHTML = about;
   document.title = config.siteTitle;

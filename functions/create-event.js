@@ -38,8 +38,8 @@ export async function onRequestPost({ request, env }) {
     autorename: true,
     mute: false,
   };
-  
-  const full_payload =  {
+
+  const res = await fetch('https://content.dropboxapi.com/2/files/upload', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${env.DROPBOX_TOKEN}`,
@@ -47,11 +47,7 @@ export async function onRequestPost({ request, env }) {
       'Content-Type': 'application/octet-stream',
     },
     body: payloadStr,
-  };
-  console.log(full_payload);
-
-  const res = await fetch('https://content.dropboxapi.com/2/files/upload',
-    full_payload);
+  });
 
   if (!res.ok) {
     const err = await res.text();
