@@ -6,14 +6,6 @@ export async function onRequestPost({ request, env }) {
    "→ dropping into path /event-queue/"
  );
 
-  if (
-    request.headers.get('content-type')?.includes('application/json') === false
-  ) {
-    return new Response('Expected application/json', { status: 400 });
-  }
-  // … rest of your code …
-}
-
   // 1. Only allow JSON POST
   if (
     request.headers.get('content-type')?.includes('application/json') === false
