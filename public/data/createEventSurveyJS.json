@@ -1030,6 +1030,19 @@
               ],
               "showOtherItem": true
             }, {
+              "type": "radiogroup",
+              "name": "other_events_platforms",
+              "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_contributor} = false",
+              "title": "Would you like to see other events platforms dedicated to specific regions (e.g. Central VT) or communities (e.g. LGBTQ) or interest groups (e.g. gaming, dancing, child-friendly)?",
+              "resetValueIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17' or {age_range} = 'prefer_not_say'",
+              "choices": [{
+                  "value": "no",
+                  "text": "No, a general platform works best for me"
+                }
+              ],
+              "showOtherItem": true,
+              "otherText": "Yes (please specify)"
+            }, {
               "type": "boolean",
               "name": "approved_interest",
               "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_contributor} = false",
