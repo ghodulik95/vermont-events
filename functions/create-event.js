@@ -29,7 +29,7 @@ export async function onRequestPost({ request, env }) {
   // 4. Generate a sortable, unique filename
   const timestamp = submittedAt.replace(/[:.]/g, '-'); // "2025-05-22T18-24-30-123Z"
   const uuid = crypto.randomUUID(); // requires Workers runtime
-  const dropboxPath = `/queue/${timestamp}-${uuid}.json`;
+  const dropboxPath = `/Apps/Vermont.Events/event-queue/${timestamp}-${uuid}.json`;
 
   // 5. Upload to Dropbox
   const dropboxArgs = {
