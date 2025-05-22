@@ -70,7 +70,7 @@
           "isRequired": true,
           "allowMultiple": true,
           "acceptedTypes": ".ics",
-          "maxSize": 1000
+          "maxSize": 1000000
         }, {
           "type": "comment",
           "name": "url_list",
