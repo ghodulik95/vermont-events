@@ -13,6 +13,46 @@ function detectMobile() {
   return /Android|iPhone|iPad|iPod|Opera Mini/i.test(navigator.userAgent);
 }
 
+// Read ?… from window.location.search into an object
+function parseFiltersFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    text:    params.get('text')    || '',
+    start:   params.get('start')   || '',
+    end:     params.get('end')     || '',
+    towns:   params.getAll('town'),      // can be multiple
+    cats:    params.getAll('cat'),       // can be multiple
+    hideLoc: params.get('hide') === '1',
+  };
+}
+
+// Write current filter values back into the URL (no reload)
+function updateUrlParams() {
+  const params = new URLSearchParams();
+
+  if (textSearch.value)   params.set('text',  textSearch.value);
+  if (startDate.value)    params.set('start', startDate.value);
+  if (endDate.value)      params.set('end',   endDate.value);
+
+  // multiple towns
+  Array.from(townFilter.selectedOptions)
+       .map(o => o.value)
+       .filter(v => v)
+       .forEach(v => params.append('town', v));
+
+  // multiple categories
+  Array.from(categoryFilter.selectedOptions)
+       .map(o => o.value)
+       .filter(v => v)
+       .forEach(v => params.append('cat', v));
+
+  if (hideWithLocation.checked) params.set('hide','1');
+
+  const newUrl = window.location.pathname + '?' + params.toString();
+  history.replaceState(null, '', newUrl);
+}
+
+
 function getRedirectHTML(rawEvent, truncate = null) {
   const { externalParticipationUrl, onlineAddress, url } = rawEvent;
 
@@ -660,6 +700,27 @@ async function saveSurveyResults(url, json) {
   const categoryFilter = document.getElementById('categoryFilter');
   const hideWithLocation = document.getElementById('hideWithLocation');
 
+  // 1) parse URL
+  const urlFilters = parseFiltersFromUrl();
+
+  // 2) set inputs
+  textSearch.value = urlFilters.text;
+  startDate.value  = urlFilters.start;
+  endDate.value    = urlFilters.end;
+  hideWithLocation.checked = urlFilters.hideLoc;
+
+  // 3) set multi-selects
+  Array.from(townFilter.options).forEach(opt => {
+    opt.selected = urlFilters.towns.length === 0
+                 ? (opt.value === '')
+                 : urlFilters.towns.includes(opt.value);
+  });
+  Array.from(categoryFilter.options).forEach(opt => {
+    opt.selected = urlFilters.cats.length === 0
+                 ? (opt.value === '')
+                 : urlFilters.cats.includes(opt.value);
+  });
+
   function filterEvents() {
     const text = textSearch.value.toLowerCase();
     const start = new Date(startDate.value);
@@ -739,8 +800,14 @@ async function saveSurveyResults(url, json) {
 
     updateFilterOptions(filteredIgnoreCat, filteredIgnoreTown);
     renderEvents(filtered);
+    // after filters & rendering…
+    updateUrlParams();  
+
   }
 
+
+  // 4) apply immediately
+  filterEvents();
   // Listen to submit filter button
   document.getElementById('applyFilters').addEventListener('click', (e) => {
     e.preventDefault();
