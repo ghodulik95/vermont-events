@@ -1,18 +1,43 @@
 // functions/submit.js
+
+// Helper: exchange refresh token for a short-lived access token
+async function getAccessToken(env) {
+  const params = new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: env.DROPBOX_REFRESH_TOKEN,
+    client_id: env.DROPBOX_APP_KEY,
+    client_secret: env.DROPBOX_APP_SECRET,
+  });
+
+  const tokenRes = await fetch('https://api.dropbox.com/oauth2/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params,
+  });
+
+  if (!tokenRes.ok) {
+    const text = await tokenRes.text();
+    throw new Error(`Dropbox token refresh failed: ${text}`);
+  }
+
+  const { access_token } = await tokenRes.json();
+  return access_token;
+}
+
 export async function onRequestPost({ request, env }) {
   // 1. Only allow JSON POST
-  if (
-    request.headers.get('content-type')?.includes('application/json') === false
-  ) {
+  if (!request.headers.get('content-type')?.includes('application/json')) {
     return new Response('Expected application/json', { status: 400 });
   }
+
   // 2. Parse incoming SurveyJS results
   const data = await request.json();
 
   // 3. Build our payload
-  const submittedAt = new Date().toISOString(); // e.g. "2025-05-22T18:24:30.123Z"
-  const uploadMethod = data.upload_method || null;
-  const userInfoProvided = !!data.user_information_bool;
+  const submittedAt = new Date().toISOString();
+  const uploadMethod =
+    data.facebook === 'yes' ? 'facebook' : data.upload_method || null;
+  const userInfoProvided = Boolean(data.user_information_bool);
   const fastTrackCode = data.fast_track_code || '';
 
   const payload = {
@@ -26,12 +51,18 @@ export async function onRequestPost({ request, env }) {
   };
   const payloadStr = JSON.stringify(payload);
 
-  // 4. Generate a sortable, unique filename
-  const timestamp = submittedAt.replace(/[:.]/g, '-'); // "2025-05-22T18-24-30-123Z"
-  const uuid = crypto.randomUUID(); // requires Workers runtime
-  const dropboxPath = `/event-queue/${timestamp}-${uuid}.json`;
+  // 4. Get a fresh short-lived access token
+  let accessToken;
+  try {
+    accessToken = await getAccessToken(env);
+  } catch (err) {
+    return new Response(`Token refresh error: ${err.message}`, { status: 502 });
+  }
 
-  // 5. Upload to Dropbox
+  // 5. Generate filename & upload args
+  const timestamp = submittedAt.replace(/[:.]/g, '-');
+  const uuid = crypto.randomUUID();
+  const dropboxPath = `/event-queue/${timestamp}-${uuid}.json`;
   const dropboxArgs = {
     path: dropboxPath,
     mode: 'add',
@@ -39,10 +70,11 @@ export async function onRequestPost({ request, env }) {
     mute: false,
   };
 
+  // 6. Upload to Dropbox
   const res = await fetch('https://content.dropboxapi.com/2/files/upload', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${env.DROPBOX_TOKEN}`,
+      Authorization: `Bearer ${accessToken}`,
       'Dropbox-API-Arg': JSON.stringify(dropboxArgs),
       'Content-Type': 'application/octet-stream',
     },
@@ -51,7 +83,7 @@ export async function onRequestPost({ request, env }) {
 
   if (!res.ok) {
     const err = await res.text();
-    return new Response(`Dropbox API error: ${err}`, { status: 502 });
+    return new Response(`Dropbox upload error: ${err}`, { status: 502 });
   }
 
   return new Response(JSON.stringify({ success: true }), {

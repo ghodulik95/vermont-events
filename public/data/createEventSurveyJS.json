@@ -2,9 +2,11 @@
   "title": "Adding an event",
   "description": "Fill out the form below to add an event.",
   "completedBeforeHtml": "<h3>You have already submitted this form.</h3>",
-  "pages": [{
+  "pages": [
+    {
       "name": "page1",
-      "elements": [{
+      "elements": [
+        {
           "type": "boolean",
           "name": "public",
           "title": "Do you want to add a public or private event?",
@@ -12,57 +14,69 @@
           "labelTrue": "Public",
           "labelFalse": "Private",
           "swapOrder": true
-        }, {
+        },
+        {
           "type": "radiogroup",
           "name": "facebook",
           "visibleIf": "{public} = true",
           "title": "Is this a Facebook event?",
           "defaultValueExpression": "noselection",
-          "choices": [{
+          "choices": [
+            {
               "value": "yes",
               "text": "Yes (Desktop or Laptop recommended)"
-            }, {
+            },
+            {
               "value": "no",
               "text": "No"
             }
           ]
-        }, {
+        },
+        {
           "type": "html",
           "name": "facebook_how_to",
           "visibleIf": "{facebook} = 'yes'",
           "html": "Click to expand:\n<details>\n  <summary style=\"cursor: pointer; font-weight: bold; font-size: 1.1em; margin-top: 1em; padding: 0.5em; background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 5px;\"><h4>How to add Facebook events (desktop)</h4></summary>\n\n<div><strong>1.</strong> Log into Facebook on your web browser. <em>You must be logged into Facebook in order to download .ics file versions of Facebook events.</em></div>\n\n<div><strong>2.</strong> Open the Facebook event on your web browser.</div>\n\n<div><strong>3.</strong> Click the <strong>...</strong> button.</div>\n<img width=\"300\" alt=\"A screenshot of a Facebook event called 'Vermont Renaissance Faire' with the '...' button highlighted with a red circle.\" src=\"https://github.com/user-attachments/assets/54f648dc-0a61-4429-95dd-480160218c17\" />\n\n<div><strong>4.</strong> Click <strong>'Add to calendar'</strong>.</div>\n<img width=\"300\" alt=\"A screenshot showing the menu that appears after clicking the '...' button, highlighting the 'Add to calendar' option.\" src=\"https://github.com/user-attachments/assets/195479a2-106f-4415-a85f-6904335fad8f\" />\n\n<div><strong>5.</strong> With the <strong>'Add to calendar'</strong> radio button selected, click the <strong>Export</strong> button.</div>\n<img width=\"300\" alt=\"The 'Export Event' popup, highlighting the radio button and export button.\" src=\"https://github.com/user-attachments/assets/03498b50-99f5-465f-8ee6-290f0b297754\" />\n\n<div><strong>6.</strong> This will download an <code>.ics</code> file. Save it and note the download location and filename.</div>\n\n<div><strong>7.</strong> Upload that <code>.ics</code> file in this form.</div>\n\n<div><strong>8.</strong> See below a short animation of steps 2–5:</div>\n<img src=\"https://private-user-images.githubusercontent.com/3253782/446077104-ab9d1de5-1c86-4bd4-9a72-a0694cbe642d.gif?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDc4MzE0NTgsIm5iZiI6MTc0NzgzMTE1OCwicGF0aCI6Ii8zMjUzNzgyLzQ0NjA3NzEwNC1hYjlkMWRlNS0xYzg2LTRiZDQtOWE3Mi1hMDY5NGNiZTY0MmQuZ2lmP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI1MDUyMSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNTA1MjFUMTIzOTE4WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9NTY0ZDI3NWM5NzBhOThkZjI4YzBmZjE3ZjAwOWIxZDZmMTk0YjhhYTY1MzE0NTlhYjdhYTYwODA5ZGI5ZTA5NSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.y9X4N95HUy_H31css2cwpKxMfNkPG1ix5MNX1uJyEto\" alt=\"A short animation showing the process exporting a Facebook event to a .ics file: 1) clicking '...', 2) clicking 'Add to calendar', 3) clicking Export when the 'Add to calendar' radio button is selected\" width=\"300\" />\n</details>\n\n<details>\n  <summary style=\"cursor: pointer; font-weight: bold; font-size: 1.1em; margin-top: 1em; padding: 0.5em; background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 5px;\"><h4> (Advanced) How to add Facebook events from a mobile device</h4></summary>\n  <div style=\"margin-top: 0.5em;\">\n    <div><strong>Important note:</strong> Facebook events can only be downloaded from a web browser while logged in and using the <strong>desktop version</strong> of the site.</div>\n    \n    <div>If the URL starts with <code>m.</code>, you're on the mobile version. Also, many mobile browsers will try to open the Facebook app instead of staying in the browser.</div>\n\n    <div>Because of these limitations, <strong>adding events from mobile is difficult</strong>, though not impossible. We recommend using a desktop/laptop whenever possible.</div>\n\n    <div>If you're able to stay in the desktop version of Facebook in your mobile browser and reach the event page without launching the Facebook app, you can follow the same steps as in the desktop instructions above.</div>\n  </div>\n</details>\n"
-        }, {
+        },
+        {
           "type": "html",
           "name": "private_event_detail",
           "visibleIf": "{public} = false",
           "html": "<div style=\"max-width: 700px; margin: auto; font-family: sans-serif; line-height: 1.5\">\n  <h4>Creating a Private Event on Mobilizon</h4>\n\n  <p>\n    Private events are not listed publicly and can only be accessed via a direct link. However, this form cannot be used to create private events.\n  </p>\n\n  <p>To create a private event, follow these steps:</p>\n\n  <div><strong>Step 1:</strong> Go to the Mobilizon site hosted by Vermont.Events at <a href=\"https://vermontmobilizon.xyz\" target=\"_blank\">vermontmobilizon.xyz</a></div>\n  <div><strong>Step 2:</strong> Register for an account.</div>\n  <div><strong>Step 3:</strong> Confirm your email address to verify your account.</div>\n  <div><strong>Step 4:</strong> Log in and go to the \"My Events\" section.</div>\n  <div><strong>Step 5:</strong> Fill in your event details. When you reach the setting labeled <em>\"Who can view this event and participate\"</em>, choose the option <strong>\"Only accessible through link (private)\"</strong>.</div>\n\n  <p>\n    <img width=\"300\" style=\"margin-left:20px;\" alt=\"Screenshot of the private event option\" src=\"https://github.com/user-attachments/assets/6a56e999-0fae-4c51-9ef8-047c433d68a3\" />\n  </p>\n\n  <p>\n    Once published, your private event will be accessible only through the link you share. The event won't appear in public searches or listings. The link remains the same, so you can make updates or post announcements as needed.\n  </p>\n\n  <p>\n    Visitors can easily add the event to their calendars using Mobilizon’s built-in tools. Those with Mobilizon accounts can also RSVP and receive reminders.\n  </p>\n</div>\n"
-        }, {
+        },
+        {
           "type": "dropdown",
           "name": "upload_method",
           "visibleIf": "{public} = true and {facebook} = 'no'",
           "title": "How do you want to add this event?",
           "isRequired": true,
-          "choices": [{
+          "choices": [
+            {
               "value": "url",
               "text": "URL(s) (Web page or .ics)"
-            }, {
+            },
+            {
               "value": "file",
               "text": ".ICS Upload(s)"
-            }, {
+            },
+            {
               "value": "custom",
               "text": "Manually enter event information"
-            }, {
+            },
+            {
               "value": "text",
               "text": "Dump text"
             }
           ]
-        }, {
+        },
+        {
           "type": "comment",
           "name": "dump_text",
           "visibleIf": "{public} = true and {facebook} = 'no' and {upload_method} = 'text'",
           "title": "Please paste the unstructured event information below",
           "isRequired": true
-        }, {
+        },
+        {
           "type": "file",
           "name": "ics_file",
           "visibleIf": "({public} = true and {upload_method} = 'file') or {facebook} = 'yes' ",
@@ -71,7 +85,8 @@
           "allowMultiple": true,
           "acceptedTypes": ".ics",
           "maxSize": 1000000
-        }, {
+        },
+        {
           "type": "comment",
           "name": "url_list",
           "visibleIf": "{public} = true and {upload_method} = 'url' and {facebook} = 'no'",
@@ -79,48 +94,57 @@
           "description": "If adding multiple URLs, put each URL on a separate line.\nWeb pages and .ics links are supported.\nThese links will be automatically queried upon moderator approval.\nPlease note that this process cannot be automated with links to social media posts, so social media posts may have a delay in processing. To speed up processing of social media links, we recommend you use the manual event add option, or upload a .ICS version of the event if the social media platform allows .ICS export.\n",
           "isRequired": true,
           "placeholder": "https://www.myfavoritelocalcoffeeshop.com/events"
-        }, {
+        },
+        {
           "type": "panel",
           "name": "custom_event_details",
           "visibleIf": "{public} = true and {upload_method} = 'custom'",
-          "elements": [{
+          "elements": [
+            {
               "type": "text",
               "name": "event_url",
               "title": "Event URL",
               "description": "If the event has a public URL link, please include it here.\nPlease note that social media links can be included here. However, if this is not a social media link, it may be more appropriate for you to add this event through the URL section of the form."
-            }, {
+            },
+            {
               "type": "text",
               "name": "title",
               "title": "Event Title",
               "isRequired": true
-            }, {
+            },
+            {
               "type": "comment",
               "name": "description",
               "title": "Description",
               "description": "Please describe the event in at least a few sentences. If the event has official text, please paste it here.",
               "isRequired": true
-            }, {
+            },
+            {
               "type": "text",
               "name": "begins_on",
               "title": "Start Date & Time",
               "isRequired": true,
               "inputType": "datetime-local"
-            }, {
+            },
+            {
               "type": "text",
               "name": "ends_on",
               "title": "End Date & Time",
               "inputType": "datetime-local"
-            }, {
+            },
+            {
               "type": "text",
               "name": "venue",
               "title": "Venue",
               "description": "If the event is happening at a named venue, e.g. Rutland Public Library, please include it here."
-            }, {
+            },
+            {
               "type": "text",
               "name": "street",
               "title": "Street Address",
               "description": "E.g. 123 Main St"
-            }, {
+            },
+            {
               "type": "dropdown",
               "name": "locality",
               "title": "Select your Vermont town or city",
@@ -339,7 +363,8 @@
                 "Under"
               ],
               "otherText": "Other (please specify)"
-            }, {
+            },
+            {
               "type": "text",
               "name": "region",
               "title": "State",
@@ -347,110 +372,142 @@
               "defaultValueExpression": "VT",
               "isRequired": true,
               "dataList": ["NY", "NH", "MA", "CT"]
-            }, {
+            },
+            {
               "type": "dropdown",
               "name": "country",
               "title": "Country",
               "description": "Please only submit events that are occurring in the United States or just across the Canadian border",
               "defaultValueExpression": "US",
               "choices": ["US", "Canada"]
-            }, {
+            },
+            {
               "type": "text",
               "name": "postal_code",
               "title": "Postal Code"
-            }, {
+            },
+            {
               "type": "dropdown",
               "name": "category",
               "title": "Category",
               "description": "Please select an event category from below. If more than one category applies, please select the one that is most applicable, or \"Community\" if you're not sure.",
               "defaultValue": "COMMUNITY",
               "isRequired": true,
-              "choices": [{
+              "choices": [
+                {
                   "value": "ARTS",
                   "text": "Arts"
-                }, {
+                },
+                {
                   "value": "BOOK_CLUBS",
                   "text": "Book Clubs"
-                }, {
+                },
+                {
                   "value": "BUSINESS",
                   "text": "Business"
-                }, {
+                },
+                {
                   "value": "CAUSES",
                   "text": "Causes"
-                }, {
+                },
+                {
                   "value": "COMEDY",
                   "text": "Comedy"
-                }, {
+                },
+                {
                   "value": "CRAFTS",
                   "text": "Crafts"
-                }, {
+                },
+                {
                   "value": "FOOD_DRINK",
                   "text": "Food & Drink"
-                }, {
+                },
+                {
                   "value": "HEALTH",
                   "text": "Health"
-                }, {
+                },
+                {
                   "value": "MUSIC",
                   "text": "Music"
-                }, {
+                },
+                {
                   "value": "AUTO_BOAT_AIR",
                   "text": "Auto, Boat & Air"
-                }, {
+                },
+                {
                   "value": "COMMUNITY",
                   "text": "Community"
-                }, {
+                },
+                {
                   "value": "FAMILY_EDUCATION",
                   "text": "Family & Education"
-                }, {
+                },
+                {
                   "value": "FASHION_BEAUTY",
                   "text": "Fashion & Beauty"
-                }, {
+                },
+                {
                   "value": "FILM_MEDIA",
                   "text": "Film & Media"
-                }, {
+                },
+                {
                   "value": "GAMES",
                   "text": "Games"
-                }, {
+                },
+                {
                   "value": "LANGUAGE_CULTURE",
                   "text": "Language & Culture"
-                }, {
+                },
+                {
                   "value": "LEARNING",
                   "text": "Learning"
                 },
-                "LGBTQ", {
+                "LGBTQ",
+                {
                   "value": "MOVEMENTS_POLITICS",
                   "text": "Movements & Politics"
-                }, {
+                },
+                {
                   "value": "NETWORKING",
                   "text": "Networking"
-                }, {
+                },
+                {
                   "value": "PARTY",
                   "text": "Party"
-                }, {
+                },
+                {
                   "value": "PERFORMING_VISUAL_ARTS",
                   "text": "Performing & Visual Arts"
-                }, {
+                },
+                {
                   "value": "PETS",
                   "text": "Pets"
-                }, {
+                },
+                {
                   "value": "PHOTOGRAPHY",
                   "text": "Photography"
-                }, {
+                },
+                {
                   "value": "OUTDOORS_ADVENTURE",
                   "text": "Outdoors & Adventure"
-                }, {
+                },
+                {
                   "value": "SPIRITUALITY_RELIGION_BELIEFS",
                   "text": "Spirituality, Religion & Beliefs"
-                }, {
+                },
+                {
                   "value": "SCIENCE_TECH",
                   "text": "Science & Tech"
-                }, {
+                },
+                {
                   "value": "SPORTS",
                   "text": "Sports"
-                }, {
+                },
+                {
                   "value": "THEATRE",
                   "text": "Theatre"
-                }, {
+                },
+                {
                   "value": "MEETING",
                   "text": "Meeting"
                 }
@@ -459,140 +516,173 @@
           ]
         }
       ]
-    }, {
+    },
+    {
       "name": "page2",
-      "elements": [{
+      "elements": [
+        {
           "type": "boolean",
           "name": "user_information_bool",
           "title": "Would you like to provide some information about yourself?",
           "description": "All information you provide is entirely optional.",
           "isRequired": true
-        }, {
+        },
+        {
           "type": "panel",
           "name": "user_information",
           "visibleIf": "{user_information_bool} = true",
-          "elements": [{
+          "elements": [
+            {
               "type": "html",
               "name": "question5",
               "html": "<div style=\"max-width: 800px; margin: 1rem auto; font-family: sans-serif; line-height: 1.5;\">\n  <div style=\"margin-bottom: 1em;\">\n    If you'd like, you can share more information about yourself below.\n  </div>\n\n  <details style=\"margin-bottom: 1em;\">\n    <summary style=\"cursor: pointer; font-weight: bold; margin-top: 1em; padding: 0.5em; background-color: #f9f9f9; border: 1px solid #ccc; border-radius: 5px;\">\n      How is this information stored and used?\n    </summary>\n\n    <div style=\"margin-top: 1em;\">\n      This information is currently used only for the following purposes:<br>\n      &mdash; Understanding general user demographics<br>\n      &mdash; Reaching out to users who indicate interest in becoming approved contributors\n    </div>\n\n    <div style=\"margin-top: 1em;\">\n      There is no user outreach (e.g. newsletters or announcements) unless you specifically indicate that you’re interested in becoming an approved contributor.\n    </div>\n\n    <div style=\"margin-top: 1em;\">\n      All data is encrypted in transit (HTTPS) and at rest (AES), with a unique encryption key per entry. Data is stored on Dropbox and deleted after 30 days. Event details submitted through the form may be retained.\n    </div>\n  </details>\n</div>\n"
-            }, {
+            },
+            {
               "type": "boolean",
               "name": "approved_contributor",
               "title": "Are you an approved contributor?",
               "description": "Approved contributors fill out a different form.",
               "defaultValueExpression": "false"
-            }, {
+            },
+            {
               "type": "radiogroup",
               "name": "age_range",
               "visibleIf": "{approved_contributor} = false",
               "title": "How old are you?",
               "description": "You must be 18 years or older to submit any more personal details.",
-              "choices": [{
+              "choices": [
+                {
                   "value": "lt_13",
                   "text": "Less than 13 years old"
-                }, {
+                },
+                {
                   "value": "r_14_17",
                   "text": "14-17 years old"
-                }, {
+                },
+                {
                   "value": "r_18_24",
                   "text": "18-24 years old"
-                }, {
+                },
+                {
                   "value": "r_25_34",
                   "text": "25-34 years old"
-                }, {
+                },
+                {
                   "value": "r_35_44",
                   "text": "35-44 years old"
-                }, {
+                },
+                {
                   "value": "r_45_54",
                   "text": "45-54 years old"
-                }, {
+                },
+                {
                   "value": "r_55_64",
                   "text": "55-64 years old"
-                }, {
+                },
+                {
                   "value": "r_65_plus",
                   "text": "65 years or older"
-                }, {
+                },
+                {
                   "value": "prefer_not_say",
                   "text": "Prefer not to say"
                 }
               ]
-            }, {
+            },
+            {
               "type": "html",
               "name": "minor_text",
               "visibleIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17'",
               "html": "You have indicated that you are a minor. Unfortunately it is against our policy to collect any personal details of minors, and minors cannot become approved contributors at this time. Thank you for your contribution!"
-            }, {
+            },
+            {
               "type": "html",
               "name": "prefer_not_to_say_age_text",
               "visibleIf": "{age_range} = 'prefer_not_say'",
               "html": "It is totally understandable that you do not want to provide your age! However, without confirming that you are not a minor, we cannot collect any more personal details from you. Thank you for your contribution!"
-            }, {
+            },
+            {
               "type": "radiogroup",
               "name": "unapproved_who",
               "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_contributor} = false",
               "title": "Who are you?",
               "resetValueIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17' or {age_range} = 'prefer_not_say'",
-              "choices": [{
+              "choices": [
+                {
                   "value": "anon_contributor",
                   "text": "Anonymous contributor"
-                }, {
+                },
+                {
                   "value": "alpha_tester",
                   "text": "Alpha Tester"
-                }, {
+                },
+                {
                   "value": "beta_tester",
                   "text": "Beta Tester"
                 }
               ],
               "showOtherItem": true
-            }, {
+            },
+            {
               "type": "text",
               "name": "user_name",
               "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_contributor} = false",
               "title": "Name",
               "resetValueIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17' or {age_range} = 'prefer_not_say'"
-            }, {
+            },
+            {
               "type": "radiogroup",
               "name": "vermont_residence",
               "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_contributor} = false",
               "title": "What describes your residence in relation to Vermont?",
               "resetValueIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17' or {age_range} = 'prefer_not_say'",
-              "choices": [{
+              "choices": [
+                {
                   "value": "resident",
                   "text": "Vermont Resident: I live in Vermont"
-                }, {
+                },
+                {
                   "value": "part_resident",
                   "text": "Part-time Resident: I live in Vermont for part of the year"
-                }, {
+                },
+                {
                   "value": "border_resident",
                   "text": "Border Resident: I do not live in Vermont but I live very close to the Vermont border"
-                }, {
+                },
+                {
                   "value": "non_resident",
                   "text": "Non-Resident: I do not live in Vermont nor close to the Vermont border"
                 }
               ]
-            }, {
+            },
+            {
               "type": "checkbox",
               "name": "visit_frequency",
               "visibleIf": "({vermont_residence} <> 'resident' and {vermont_residence} notempty)  and {approved_contributor} = false",
               "title": "When do you spend time in Vermont? Select all that apply.",
               "description": "Consider 'Frequently' to mean once or more per month.",
               "resetValueIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17' or {age_range} = 'prefer_not_say'",
-              "choices": [{
+              "choices": [
+                {
                   "value": "winter",
                   "text": "Frequently during winter"
-                }, {
+                },
+                {
                   "value": "spring",
                   "text": "Frequently during spring"
-                }, {
+                },
+                {
                   "value": "summer",
                   "text": "Frequently during summer"
-                }, {
+                },
+                {
                   "value": "fall",
                   "text": "Frequently during fall"
                 }
               ],
               "showOtherItem": true
-            }, {
+            },
+            {
               "type": "tagbox",
               "name": "visited_vermont_towns",
               "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_contributor} = false",
@@ -812,248 +902,319 @@
                 "Under"
               ],
               "otherText": "Other (please specify)"
-            }, {
+            },
+            {
               "type": "tagbox",
-              "name": "question1",
+              "name": "events_attended",
               "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_contributor} = false",
               "title": "What kinds of events do you like to attend in Vermont?",
               "resetValueIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17' or {age_range} = 'prefer_not_say'",
-              "choices": [{
+              "choices": [
+                {
                   "value": "ARTS",
                   "text": "Arts"
-                }, {
+                },
+                {
                   "value": "BOOK_CLUBS",
                   "text": "Book Clubs"
-                }, {
+                },
+                {
                   "value": "BUSINESS",
                   "text": "Business"
-                }, {
+                },
+                {
                   "value": "CAUSES",
                   "text": "Causes"
-                }, {
+                },
+                {
                   "value": "COMEDY",
                   "text": "Comedy"
-                }, {
+                },
+                {
                   "value": "CRAFTS",
                   "text": "Crafts"
-                }, {
+                },
+                {
                   "value": "FOOD_DRINK",
                   "text": "Food & Drink"
-                }, {
+                },
+                {
                   "value": "HEALTH",
                   "text": "Health"
-                }, {
+                },
+                {
                   "value": "MUSIC",
                   "text": "Music"
-                }, {
+                },
+                {
                   "value": "AUTO_BOAT_AIR",
                   "text": "Auto, Boat & Air"
-                }, {
+                },
+                {
                   "value": "COMMUNITY",
                   "text": "Community"
-                }, {
+                },
+                {
                   "value": "FAMILY_EDUCATION",
                   "text": "Family & Education"
-                }, {
+                },
+                {
                   "value": "FASHION_BEAUTY",
                   "text": "Fashion & Beauty"
-                }, {
+                },
+                {
                   "value": "FILM_MEDIA",
                   "text": "Film & Media"
-                }, {
+                },
+                {
                   "value": "GAMES",
                   "text": "Games"
-                }, {
+                },
+                {
                   "value": "LANGUAGE_CULTURE",
                   "text": "Language & Culture"
-                }, {
+                },
+                {
                   "value": "LEARNING",
                   "text": "Learning"
                 },
-                "LGBTQ", {
+                "LGBTQ",
+                {
                   "value": "MOVEMENTS_POLITICS",
                   "text": "Movements & Politics"
-                }, {
+                },
+                {
                   "value": "NETWORKING",
                   "text": "Networking"
-                }, {
+                },
+                {
                   "value": "PARTY",
                   "text": "Party"
-                }, {
+                },
+                {
                   "value": "PERFORMING_VISUAL_ARTS",
                   "text": "Performing & Visual Arts"
-                }, {
+                },
+                {
                   "value": "PETS",
                   "text": "Pets"
-                }, {
+                },
+                {
                   "value": "PHOTOGRAPHY",
                   "text": "Photography"
-                }, {
+                },
+                {
                   "value": "OUTDOORS_ADVENTURE",
                   "text": "Outdoors & Adventure"
-                }, {
+                },
+                {
                   "value": "SPIRITUALITY_RELIGION_BELIEFS",
                   "text": "Spirituality, Religion & Beliefs"
-                }, {
+                },
+                {
                   "value": "SCIENCE_TECH",
                   "text": "Science & Tech"
-                }, {
+                },
+                {
                   "value": "SPORTS",
                   "text": "Sports"
-                }, {
+                },
+                {
                   "value": "THEATRE",
                   "text": "Theatre"
-                }, {
+                },
+                {
                   "value": "MEETING",
                   "text": "Meeting"
                 }
               ],
               "showOtherItem": true
-            }, {
+            },
+            {
               "type": "radiogroup",
-              "name": "question3",
+              "name": "events_difficulty_bool",
               "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_contributor} = false",
               "title": "Are there any kinds of community events you don’t usually hear about until it’s too late?",
               "resetValueIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17' or {age_range} = 'prefer_not_say'",
-              "choices": [{
+              "choices": [
+                {
                   "value": "yes_many",
                   "text": "Yes, with many events in general"
-                }, {
+                },
+                {
                   "value": "yes_specifc",
                   "text": "Yes, but mostly with specific kinds of events"
-                }, {
+                },
+                {
                   "value": "no",
                   "text": "No"
                 }
               ]
-            }, {
+            },
+            {
               "type": "tagbox",
-              "name": "question2",
+              "name": "events_difficulty",
               "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_contributor} = false",
               "title": "What kinds of events do you have trouble finding out about, if any?",
               "resetValueIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17' or {age_range} = 'prefer_not_say'",
-              "choices": [{
+              "choices": [
+                {
                   "value": "NONE",
                   "text": "None"
-                }, {
+                },
+                {
                   "value": "GENERAL",
                   "text": "Many, generally"
-                }, {
+                },
+                {
                   "value": "ARTS",
                   "text": "Arts"
-                }, {
+                },
+                {
                   "value": "BOOK_CLUBS",
                   "text": "Book Clubs"
-                }, {
+                },
+                {
                   "value": "BUSINESS",
                   "text": "Business"
-                }, {
+                },
+                {
                   "value": "CAUSES",
                   "text": "Causes"
-                }, {
+                },
+                {
                   "value": "COMEDY",
                   "text": "Comedy"
-                }, {
+                },
+                {
                   "value": "CRAFTS",
                   "text": "Crafts"
-                }, {
+                },
+                {
                   "value": "FOOD_DRINK",
                   "text": "Food & Drink"
-                }, {
+                },
+                {
                   "value": "HEALTH",
                   "text": "Health"
-                }, {
+                },
+                {
                   "value": "MUSIC",
                   "text": "Music"
-                }, {
+                },
+                {
                   "value": "AUTO_BOAT_AIR",
                   "text": "Auto, Boat & Air"
-                }, {
+                },
+                {
                   "value": "COMMUNITY",
                   "text": "Community"
-                }, {
+                },
+                {
                   "value": "FAMILY_EDUCATION",
                   "text": "Family & Education"
-                }, {
+                },
+                {
                   "value": "FASHION_BEAUTY",
                   "text": "Fashion & Beauty"
-                }, {
+                },
+                {
                   "value": "FILM_MEDIA",
                   "text": "Film & Media"
-                }, {
+                },
+                {
                   "value": "GAMES",
                   "text": "Games"
-                }, {
+                },
+                {
                   "value": "LANGUAGE_CULTURE",
                   "text": "Language & Culture"
-                }, {
+                },
+                {
                   "value": "LEARNING",
                   "text": "Learning"
                 },
-                "LGBTQ", {
+                "LGBTQ",
+                {
                   "value": "MOVEMENTS_POLITICS",
                   "text": "Movements & Politics"
-                }, {
+                },
+                {
                   "value": "NETWORKING",
                   "text": "Networking"
-                }, {
+                },
+                {
                   "value": "PARTY",
                   "text": "Party"
-                }, {
+                },
+                {
                   "value": "PERFORMING_VISUAL_ARTS",
                   "text": "Performing & Visual Arts"
-                }, {
+                },
+                {
                   "value": "PETS",
                   "text": "Pets"
-                }, {
+                },
+                {
                   "value": "PHOTOGRAPHY",
                   "text": "Photography"
-                }, {
+                },
+                {
                   "value": "OUTDOORS_ADVENTURE",
                   "text": "Outdoors & Adventure"
-                }, {
+                },
+                {
                   "value": "SPIRITUALITY_RELIGION_BELIEFS",
                   "text": "Spirituality, Religion & Beliefs"
-                }, {
+                },
+                {
                   "value": "SCIENCE_TECH",
                   "text": "Science & Tech"
-                }, {
+                },
+                {
                   "value": "SPORTS",
                   "text": "Sports"
-                }, {
+                },
+                {
                   "value": "THEATRE",
                   "text": "Theatre"
-                }, {
+                },
+                {
                   "value": "MEETING",
                   "text": "Meeting"
                 }
               ],
               "showOtherItem": true
-            }, {
+            },
+            {
               "type": "radiogroup",
               "name": "other_events_platforms",
               "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_contributor} = false",
               "title": "Would you like to see other events platforms dedicated to specific regions (e.g. Central VT) or communities (e.g. LGBTQ) or interest groups (e.g. gaming, dancing, child-friendly)?",
               "resetValueIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17' or {age_range} = 'prefer_not_say'",
-              "choices": [{
+              "choices": [
+                {
                   "value": "no",
                   "text": "No, a general platform works best for me"
                 }
               ],
               "showOtherItem": true,
               "otherText": "Yes (please specify)"
-            }, {
+            },
+            {
               "type": "boolean",
               "name": "approved_interest",
               "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_contributor} = false",
               "title": "Are you interested in becoming an approved contributor?",
               "resetValueIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17' or {age_range} = 'prefer_not_say'"
-            }, {
+            },
+            {
               "type": "html",
               "name": "approved_user_html",
               "visibleIf": "({age_range} = 'r_18_24' or {age_range} = 'r_25_34' or {age_range} = 'r_35_44' or {age_range} = 'r_45_54' or {age_range} = 'r_55_64' or {age_range} = 'r_65_plus') and {approved_interest} = true and {approved_contributor} = false",
               "html": "<div style=\"max-width: 800px; margin: 1rem auto; font-family: sans-serif; line-height: 1.5;\">\n  <div style=\"font-size: 1.5em; font-weight: bold; margin-bottom: 0.5em;\">\n    Why become an approved event contributor?\n  </div>\n\n  <div style=\"margin-bottom: 1em;\">\n    First, note that <strong>all users</strong> can view public events and create both public and private personal events. Users with a Mobilizon account can also publish their own events immediately, subject to moderation.\n  </div>\n\n  <div style=\"margin-bottom: 1em;\">\n    This submission form allows users to add events they didn’t organize themselves. To protect accuracy and quality, these submissions must be reviewed to ensure they are:\n    1) appropriate, 2) truly public in outreach intent, and 3) properly annotated.\n  </div>\n\n  <div style=\"margin-bottom: 1em;\">\n    <strong>Approved contributors</strong> receive simple training and are trusted to meet site standards. Their submissions are prioritized and may not require manual review. In contrast, unapproved submissions may be delayed, as all reviews are done by volunteers.\n  </div>\n\n  <div style=\"margin-bottom: 1em;\">\n    Becoming an approved contributor means you're a <strong>dedicated partner</strong> in our mission to grow access to local events—without relying on big tech. We ask approved contributors to actively seek out events to share, not just occasionally submit listings.\n  </div>\n\n  <div>\n    <strong>You can still contribute without being approved</strong>—approval simply lets us streamline your submissions and work more closely with you as the site evolves.\n  </div>\n</div>\n"
-            }, {
+            },
+            {
               "type": "multipletext",
               "name": "user_email",
               "visible": false,
@@ -1061,15 +1222,18 @@
               "title": "In order to become an approved contributor, you must provide contact information",
               "description": "You may submit without this information, which we will use to gauge general public interest in contribution, but we will not be able to begin the approval process with you.",
               "resetValueIf": "{age_range} = 'lt_13' or {age_range} = 'r_14_17' or {age_range} = 'prefer_not_say'",
-              "items": [{
+              "items": [
+                {
                   "name": "text1",
                   "title": "Email"
-                }, {
+                },
+                {
                   "name": "text2",
                   "title": "Phone number"
                 }
               ]
-            }, {
+            },
+            {
               "type": "text",
               "name": "fast_track_code",
               "visibleIf": "{approved_contributor} = true",

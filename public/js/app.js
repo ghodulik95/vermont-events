@@ -119,7 +119,7 @@ async function saveSurveyResults(url, json) {
     fetch('/config.json?v=4').then((r) => r.json()),
     fetch('/data/events.json?v=4').then((r) => r.json()),
     fetch('/partials/about-tab.html?v=4').then((r) => r.text()),
-    fetch('/data/createEventSurveyJS.json?v=3').then((r) => r.json()),
+    fetch('/data/createEventSurveyJS.json?v=4').then((r) => r.json()),
   ]);
   document.getElementById('aboutTab').outerHTML = about;
   document.title = config.siteTitle;
