@@ -27,6 +27,10 @@ h1 {
 p {
   line-height: 1.6;
 }
+
+#splashText {
+  margin: 8px 2px;
+}
 /* Search & Filter */
 #filters {
   display: flex;
@@ -399,7 +403,7 @@ p {
   left: 10px;
   background: #007bff;
   color: white;
-  padding: 8px 12px;
+  padding: 8px 8px;
   border-radius: 5px;
   text-decoration: none;
   font-family: sans-serif;

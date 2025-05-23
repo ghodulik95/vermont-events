@@ -130,10 +130,27 @@ async function saveSurveyResults(url, json) {
   survey.onComplete.add(surveyComplete);
   // Customize the thank-you message and add a button to restart
   survey.completedHtml = `
-  <h3>Thank you for submitting your event!</h3>
-  <p>We'll review it and get back to you soon.</p>
-  <button id="restartSurveyBtn" style="margin-top:1em;">Submit Another Event</button>
-`;
+    <h3>Thank you for submitting your event!</h3>
+    <p>We'll review it and get back to you soon.</p>
+    <button id="restartSurveyBtn" style="margin-top:1em;">Submit Another Event</button>
+  `;
+  // Watch for begins_on value changes
+  survey.onValueChanged.add(function (sender, options) {
+    if (options.name === "begins_on") {
+      const beginsOnValue = options.value;
+
+      const endsOnQuestion = sender.getQuestionByName("ends_on");
+      if (endsOnQuestion && beginsOnValue) {
+        // Set the minimum selectable date for ends_on
+        endsOnQuestion.min = beginsOnValue;
+        
+        if (!endsOnQuestion.value || (new Date(endsOnQuestion.value) < new Date(beginsOnValue))) {
+          endsOnQuestion.value = beginsOnValue;
+        }
+      }
+    }
+  });
+
 
   survey.render(createEventTabEl);
 
@@ -529,7 +546,7 @@ async function saveSurveyResults(url, json) {
   }
 
   // Update filter dropdowns dynamically based on event list
-  function updateFilterOptions(catEvents, townEvents) {
+  /*function updateFilterOptions(catEvents, townEvents) {
     const townFilter = document.getElementById('townFilter');
     const categoryFilter = document.getElementById('categoryFilter');
 
@@ -576,7 +593,62 @@ async function saveSurveyResults(url, json) {
         categoryFilter.appendChild(opt);
       });
     categoryFilter.value = catCounts[selectedCategory] ? selectedCategory : '';
+  }*/
+  
+  function updateFilterOptions(catEvents, townEvents) {
+    const townFilter = document.getElementById('townFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+
+    // 1) remember previous selections
+    const prevTowns = Array.from(townFilter.selectedOptions).map(o => o.value);
+    const prevCats  = Array.from(categoryFilter.selectedOptions).map(o => o.value);
+
+    // 2) rebuild the option lists
+    const townCounts = townEvents.reduce((acc, e) => {
+      const t = e.address?.locality?.trim();
+      if (t) acc[t] = (acc[t] || 0) + 1;
+      return acc;
+    }, {});
+    townFilter.innerHTML = '';
+    // “All Towns”
+    const allTownOpt = document.createElement('option');
+    allTownOpt.value = '';
+    allTownOpt.textContent = 'All Towns';
+    // if user had “All” or nothing selected, keep All selected
+    allTownOpt.selected = prevTowns.length === 0 || prevTowns.includes('');
+    townFilter.appendChild(allTownOpt);
+
+    Object.keys(townCounts).sort().forEach((town) => {
+      const opt = document.createElement('option');
+      opt.value = town;
+      opt.textContent = `${town} (${townCounts[town]})`;
+      // re-select if previously chosen
+      if (prevTowns.includes(town)) opt.selected = true;
+      townFilter.appendChild(opt);
+    });
+
+    // Same for categories
+    const catCounts = catEvents.reduce((acc, e) => {
+      const c = e.category?.trim();
+      if (c) acc[c] = (acc[c] || 0) + 1;
+      return acc;
+    }, {});
+    categoryFilter.innerHTML = '';
+    const allCatOpt = document.createElement('option');
+    allCatOpt.value = '';
+    allCatOpt.textContent = 'All Categories';
+    allCatOpt.selected = prevCats.length === 0 || prevCats.includes('');
+    categoryFilter.appendChild(allCatOpt);
+
+    Object.keys(catCounts).sort().forEach((cat) => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = `${humanizeCategory(cat)} (${catCounts[cat]})`;
+      if (prevCats.includes(cat)) opt.selected = true;
+      categoryFilter.appendChild(opt);
+    });
   }
+
 
   updateFilterOptions(events, events);
   renderEvents(events);
@@ -592,8 +664,15 @@ async function saveSurveyResults(url, json) {
     const text = textSearch.value.toLowerCase();
     const start = new Date(startDate.value);
     const end = new Date(endDate.value);
-    const town = townFilter.value.toLowerCase();
-    const category = categoryFilter.value.toLowerCase();
+    //const town = townFilter.value.toLowerCase();
+    const selectedTowns = Array.from(townFilter.selectedOptions)
+                            .map(o => o.value.toLowerCase());
+    // if “All Towns” is selected we treat it as “no filter”
+    const filterAllTowns = selectedTowns.includes('');
+    //const category = categoryFilter.value.toLowerCase();
+    const selectedCats = Array.from(categoryFilter.selectedOptions)
+                          .map(o => o.value.toLowerCase());
+    const filterAllCats = selectedCats.includes('');
     const targetId = getActiveTab();
     const doHide = targetId === 'cardsTab' && hideWithLocation.checked;
 
@@ -604,8 +683,10 @@ async function saveSurveyResults(url, json) {
         event.address?.description?.toLowerCase().includes(text) ||
         event.address?.locality?.toLowerCase().includes(text) ||
         (event.category || '').toLowerCase().includes(text);
-      const matchTown =
-        !town || event.address?.locality?.toLowerCase() === town;
+      //const matchTown =
+      //  !town || event.address?.locality?.toLowerCase() === town;
+      const eventTown = (event.address?.locality || '').toLowerCase();
+      const matchTown = filterAllTowns || selectedTowns.includes(eventTown);
       const inDateRange =
         (!startDate.value || d >= start) && (!endDate.value || d <= end);
       const matchLocation = !doHide || !event.address.geom;
@@ -620,8 +701,10 @@ async function saveSurveyResults(url, json) {
         event.address?.description?.toLowerCase().includes(text) ||
         event.address?.locality?.toLowerCase().includes(text) ||
         (event.category || '').toLowerCase().includes(text);
-      const matchCategory =
-        !category || (event.category || '').toLowerCase() === category;
+      //const matchCategory =
+      //  !category || (event.category || '').toLowerCase() === category;
+      const eventCat = (event.category || '').toLowerCase();
+      const matchCategory = filterAllCats || selectedCats.includes(eventCat);
       const inDateRange =
         (!startDate.value || d >= start) && (!endDate.value || d <= end);
       const matchLocation = !doHide || !event.address.geom;
@@ -636,10 +719,15 @@ async function saveSurveyResults(url, json) {
         event.address?.description?.toLowerCase().includes(text) ||
         event.address?.locality?.toLowerCase().includes(text) ||
         (event.category || '').toLowerCase().includes(text);
-      const matchTown =
-        !town || event.address?.locality?.toLowerCase() === town;
-      const matchCategory =
-        !category || (event.category || '').toLowerCase() === category;
+      //const matchTown =
+      //  !town || event.address?.locality?.toLowerCase() === town;
+      const eventTown = (event.address?.locality || '').toLowerCase();
+      const matchTown = filterAllTowns || selectedTowns.includes(eventTown);
+      
+      //const matchCategory =
+      //  !category || (event.category || '').toLowerCase() === category;
+      const eventCat = (event.category || '').toLowerCase();
+      const matchCategory = filterAllCats || selectedCats.includes(eventCat);
       const inDateRange =
         (!startDate.value || d >= start) && (!endDate.value || d <= end);
       const matchLocation = !doHide || !event.address.geom;
