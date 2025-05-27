@@ -289,6 +289,21 @@ p {
   -webkit-line-clamp: unset;
 }
 
+/* description truncated to 5 lines */
+/*.popup-card-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 10;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 1rem;
+}*/
+
+/* when expanded, show full text */
+.card-description.expanded {
+  -webkit-line-clamp: unset;
+}
+
 /* the little “+”/“–” button */
 .expand-btn {
   position: absolute;
@@ -311,7 +326,7 @@ p {
   padding: 0.75rem;
   border-radius: 4px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  z-index: 10000;
+  z-index: 100;
   max-width: 200px;
 }
 .fc-popover h4 {
@@ -470,3 +485,61 @@ p {
     margin-left: 0;
   }
 }
+
+/* Fullscreen overlay (hidden by default) */
+#popupOverlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Faded background */
+  z-index: 9999; /* On top of everything */
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s;
+}
+
+/* Show the overlay */
+#popupOverlay.active {
+  display: flex;
+  overflow: hidden;
+}
+
+/* Popup card */
+#popupCard {
+  background: white;
+  padding: 2em;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 90%;
+  animation: scaleIn 0.3s;
+  position: relative;
+   max-height: 80vh;
+  /* let it grow/shrink within that limit */
+  height: auto;
+  /* enable vertical scrolling when needed */
+  overflow-y: auto;
+}
+
+
+
+/* Close button */
+#closePopup {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  background: transparent;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+

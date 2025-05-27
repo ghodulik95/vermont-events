@@ -13,6 +13,71 @@ function detectMobile() {
   return /Android|iPhone|iPad|iPod|Opera Mini/i.test(navigator.userAgent);
 }
 
+function openPopupEvent({
+  title,
+  beginsOn,
+  endsOn = null,
+  address = {},
+  linkText,        // you can pass whatever you want here; openPopupEvent just renders it via getRedirectHTML()
+  description = '',
+  category = ''
+}) {
+  const popupOverlay = document.getElementById('popupOverlay');
+  const popupCard    = document.getElementById('popupCardContent');
+
+  // clear out any previous content
+  popupCard.innerHTML = '';
+
+  // build the card
+  const card = document.createElement('div');
+  card.className = 'popup-event-card';
+
+  const titleEl = document.createElement('h3');
+  titleEl.textContent = title;
+
+  const dateEl = document.createElement('p');
+  dateEl.innerHTML = `<strong>Date:</strong> ${new Date(beginsOn).toLocaleString()}`
+                   + (endsOn ? ` – ${new Date(endsOn).toLocaleString()}` : '');
+
+  const locEl = document.createElement('p');
+  locEl.innerHTML = `<strong>Location:</strong> ${address.locality || 'Unknown'}`;
+
+  const srcEl = document.createElement('p');
+  srcEl.innerHTML = `<strong>More details at:</strong> ${getRedirectHTML(linkText)}`;
+
+  card.append(titleEl, dateEl, locEl, srcEl);
+
+  if (description) {
+    const descEl = document.createElement('p');
+    descEl.classList.add('popup-card-description');
+    descEl.innerHTML = `<strong>Description:</strong> ${description}`;
+    card.append(descEl);
+  }
+    
+  const commentEl = document.createElement('section')
+  commentEl.id = 'isso-thread'
+  commentEl.setAttribute('data-isso-id', '/event_comments/' + linkText.url);
+  Isso.init()
+  Isso.fetchComments();
+
+  popupCard.append(card, commentEl);
+
+  // show the overlay
+  popupOverlay.classList.add('active');
+
+  // one-time close listener
+  const close = () => {
+    popupOverlay.classList.remove('active');
+    popupOverlay.removeEventListener('click', close);
+    document.getElementById('closePopup').removeEventListener('click', close);
+  };
+  document.getElementById('closePopup').addEventListener('click', close);
+  popupOverlay.addEventListener('click', e => {
+    if (e.target === popupOverlay) close();
+  });
+}
+
+
 // Read ?… from window.location.search into an object
 function parseFiltersFromUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -322,10 +387,10 @@ async function saveSurveyResults(url, json) {
     });
 
     sortedEvents.forEach((event) => {
+      console.log(event);
       const card = document.createElement('div');
       const titleEl = document.createElement('h3');
       titleEl.textContent = event.title;
-
       const dateEl = document.createElement('p');
       dateEl.innerHTML = `<strong>Date:</strong> ${new Date(
         event.beginsOn
@@ -371,6 +436,20 @@ async function saveSurveyResults(url, json) {
         if (link) window.open(link, '_blank');
       });
       */
+      //
+      const details = {
+        title:       event.title,
+        beginsOn:    event.beginsOn,
+        endsOn:      event.endsOn,
+        address:     event.address,
+        linkText:    event,           // we’ll let getRedirectHTML pick url fields
+        description: event.description,
+        category:    event.category
+      };
+
+      // fire the popup
+      card.addEventListener('click', () => openPopupEvent(details));
+
 
       container.appendChild(card);
     });
@@ -390,6 +469,10 @@ async function saveSurveyResults(url, json) {
         username: event.username,
         address: event.address,
         linkText: getRedirectHTML(event, 12),
+        description: event.description,
+        externalParticipationUrl: event.externalParticipationUrl,
+        onlineAddress: event.onlineAddress,
+        url: event.url
       },
     }));
     const calendarEl = document.getElementById('calendar');
@@ -416,21 +499,45 @@ async function saveSurveyResults(url, json) {
         const pop = document.createElement('div');
         pop.id = 'fcPopover';
         pop.className = 'fc-popover';
+
+        // Extract event details
         const startTime = new Date(info.event.start).toLocaleString();
         const endTime = info.event.end
           ? ` – ${new Date(info.event.end).toLocaleString()}`
           : '';
-        const addr =
-          info.event.extendedProps.address.description ||
-          (info.event.extendedProps.address.street || '') +
-            ', ' +
-            (info.event.extendedProps.address.locality || '');
+        const addr = info.event.extendedProps.address.description ||
+          (info.event.extendedProps.address.street || '') + ', ' +
+          (info.event.extendedProps.address.locality || '');
+
+        const evt = info.event;
+        const details = {
+          title:       evt.title,
+          beginsOn:    evt.start,
+          endsOn:      evt.end,
+          address:     evt.extendedProps.address,
+          linkText:    {
+            externalParticipationUrl: evt.extendedProps.externalParticipationUrl,
+            onlineAddress:            evt.extendedProps.onlineAddress,
+            url:                      evt.extendedProps.url
+          },
+          description: evt.extendedProps.description || '',
+          category:    evt.extendedProps.category || ''
+        };
+
+        // Create inner HTML
         pop.innerHTML = `
-              <h4>${info.event.title}</h4>
-              <p>${startTime}${endTime}</p>
-              <p>${addr}</p>
-              More details at ${info.event.extendedProps.linkText}
-            `;
+          <h4>${info.event.title}</h4>
+          <p>${startTime}${endTime}</p>
+          <p>${addr}</p>
+        `;
+
+        // Create the "Show more" button
+        const showMoreBtn = document.createElement('button');
+        showMoreBtn.textContent = 'Show more';
+        showMoreBtn.addEventListener('click', () => openPopupEvent(details));
+
+        // Append the button to the popup
+        pop.appendChild(showMoreBtn);
 
         // Temporarily position it off-screen so we can measure it
         pop.style.position = 'absolute';
@@ -551,13 +658,40 @@ async function saveSurveyResults(url, json) {
           const endsOnStr = event.endsOn
             ? ` – ${new Date(event.endsOn).toLocaleString()}`
             : '';
+          const details = {
+            title:       event.title,
+            beginsOn:    event.beginsOn,
+            endsOn:      event.endsOn,
+            address:     event.address,
+            linkText:    event,       // again: getRedirectHTML(event) will pick urls
+            description: event.description,
+            category:    event.category
+          };
 
           marker.bindPopup(
             `<strong>${event.title}</strong><br>
              ${beginsOnStr}${endsOnStr}<br>
-             More details at ${getRedirectHTML(event)}`
+             <a href="#" class="show-more-link">Show more…</a>`
           );
-          // no click-handler needed: Leaflet will open the popup on tap
+          marker.on('popupopen', (e) => {
+          // `e.popup` is the Leaflet popup that just opened
+          // Grab its DOM container…
+          const popupEl = e.popup.getElement();
+
+          // Find our “Show more” link inside it…
+          const btn = popupEl.querySelector('.show-more-link');
+          if (!btn) return;
+
+          btn.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            // close the small Leaflet popup
+            //e.popup._close();
+
+            // now open our fullscreen overlay
+            openPopupEvent(details);
+          });
+        });
+
 
           markerCluster.addLayer(marker);
         }
