@@ -192,17 +192,26 @@
     
     <script data-isso="https://comments.vermontmobilizon.xyz/"
         src="https://comments.vermontmobilizon.xyz/js/embed.min.js"></script>
-<!--
-    <section id="isso-thread">
-        <noscript>Javascript needs to be activated to view comments.</noscript>
-    </section>
---!>    
-    <section class="isso-thread" data-isso-id="/thread-one">
-      <noscript>Javascript needs to be activated to view comments for Thread One.</noscript>
-  </section>
+<h2>Thread One</h2>
+<section id="isso-thread" data-isso-id="/thread-one">
+    <noscript>Javascript needs to be activated to view comments for Thread One.</noscript>
+</section>
 
-  <section class="isso-thread" data-isso-id="/thread-two">
-      <noscript>Javascript needs to be activated to view comments for Thread Two.</noscript>
-  </section>
+<h2>Thread Two</h2>
+<section id="isso-thread-two" data-isso-id="/thread-two">
+    <noscript>Javascript needs to be activated to view comments for Thread Two.</noscript>
+</section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Isso automatically processes the first thread (id="isso-thread")
+
+    // For additional threads, we manually embed them:
+    var issoThreadTwo = document.getElementById("isso-thread-two");
+    if (issoThreadTwo) {
+      Isso.embed(issoThreadTwo);
+    }
+  });
+</script>
   </body>
 </html>
