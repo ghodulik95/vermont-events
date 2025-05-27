@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>EventBroker RSS Embed</title>
+  <style>
+    #feed { max-width:600px; margin:2rem auto; font-family:sans-serif; }
+    .post { border-bottom:1px solid #ccc; padding:1rem 0; }
+    .post h4 { margin:0 0 .25rem; font-size:1.1rem; }
+    .post time { font-size:.85rem; color:#666; }
+  </style>
+</head>
+<body>
+
+  <div id="feed">Loading feed…</div>
+
+  <!-- tiny RSS parser from unpkg CDN -->
+  <script src="https://unpkg.com/rss-parser/dist/rss-parser.min.js"></script>
+  <script>
+    (async () => {
+      const parser = new RSSParser();
+      let feedEl = document.getElementById('feed');
+      try {
+        // Parse the RSS at the .rss endpoint
+        const feed = await parser.parseURL('https://blog.vermontmobilizon.xyz/@eventbroker.rss');
+        feedEl.innerHTML = '';
+        feed.items.slice(0, 10).forEach(item => {
+          const post = document.createElement('div');
+          post.className = 'post';
+          post.innerHTML = `
+            <h4><a href="${item.link}" target="_blank">${item.title}</a></h4>
+            <time datetime="${item.pubDate}">
+              ${new Date(item.pubDate).toLocaleString()}
+            </time>
+            <p>${item.contentSnippet || ''}</p>
+          `;
+          feedEl.append(post);
+        });
+      } catch (e) {
+        feedEl.textContent = 'Error loading feed: ' + e.message;
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>
