@@ -57,13 +57,14 @@ function openPopupEvent({
   const commentEl = document.createElement('section')
   commentEl.id = 'isso-thread'
   commentEl.setAttribute('data-isso-id', '/event_comments/' + linkText.url);
-  Isso.init()
-  Isso.fetchComments();
 
   popupCard.append(card, commentEl);
 
   // show the overlay
   popupOverlay.classList.add('active');
+  
+  Isso.init()
+  Isso.fetchComments();
 
   // one-time close listener
   const close = () => {
