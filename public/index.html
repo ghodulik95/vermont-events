@@ -198,6 +198,7 @@
 </section>
 
 <h2>Thread Two</h2>
+<a href="./index.html#thread-two">Comments</a>
 <section id="not-isso-thread" data-isso-id="/thread-two">
     <noscript>Javascript needs to be activated to view comments for Thread One.</noscript>
 </section>
@@ -205,15 +206,18 @@
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     // Testing if comment functinonality works even when id is removed from section
-    let element = document.getElementById('isso-thread');
-    element.removeAttribute('id');
+    //let element = document.getElementById('isso-thread');
+    //element.removeAttribute('id');
     
     // Now testing another comment section
-    element = document.getElementById('not-isso-thread');
-    element.id = 'isso-thread';
+    //element = document.getElementById('not-isso-thread');
+    //element.id = 'isso-thread';
     
-    Isso.init();
-    Isso.fetchComments();
+    //Isso.init();
+    //Isso.fetchComments();
+    
+    // Okay after testing this it looks like only one comment element at a time can works
+    
     
     
     // I think this how it works:
