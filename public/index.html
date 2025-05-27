@@ -197,12 +197,25 @@
     <noscript>Javascript needs to be activated to view comments for Thread One.</noscript>
 </section>
 
+<h2>Thread Two</h2>
+<section id="not-isso-thread" data-isso-id="/thread-two">
+    <noscript>Javascript needs to be activated to view comments for Thread One.</noscript>
+</section>
+
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     // Testing if comment functinonality works even when id is removed from section
-    let element = document.getElementById('myElement');
+    let element = document.getElementById('isso-thread');
     element.removeAttribute('id');
-    // This does not work.
+    
+    // Now testing another comment section
+    let element = document.getElementById('not-isso-thread');
+    element.id = 'isso-thread';
+    
+    Isso.init();
+    Isso.fetchComments();
+    
+    
     // I think this how it works:
     // Isso.fetchComments() will pull comments into the initialized #isso-thread
     // If dynamically making new #isso-thread, must  call Isso.init() first
