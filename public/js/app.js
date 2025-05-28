@@ -13,6 +13,273 @@ function detectMobile() {
   return /Android|iPhone|iPad|iPod|Opera Mini/i.test(navigator.userAgent);
 }
 
+
+// Close sidebar
+function closeSidebar() {
+  document.getElementById("sidebar").classList.remove("open");
+}
+
+// Switch entire sections
+function switchSection(sectionId) {
+  closeSidebar();
+  // Hide all sections with fade out
+  document.querySelectorAll('.mainSection').forEach(el => {
+    el.classList.remove('active');
+  });
+
+  // Show the selected section with fade in
+  const section = document.getElementById(sectionId);
+  section.classList.add('active');
+  
+  if (sectionId === "commentSection") {
+    const commentDiv = document.getElementById('publicComments');
+    const commentEl = document.createElement('section')
+    commentEl.id = 'isso-thread'
+    commentEl.setAttribute('data-isso-id', '/public-comments');
+
+    commentDiv.append(commentEl);
+    
+    Isso.init()
+    Isso.fetchComments();
+    Array.from(document.getElementsByClassName("sidebar-nav")).forEach(el => {
+      // There can only be one present isso thread or weirdness happens.
+      // Remove on new sidebar nav.
+      el.addEventListener('click', e => {
+        commentDiv.innerHTML = '';
+      });
+    });
+  } else if (sectionId === "blogSection" && !blogLoaded) {
+    loadRSS();
+  }
+}
+
+function cleanContent(content) {
+  return content
+    // Remove <p> tags inside <li> elements, keeping inner text/HTML
+    .replace(/<li[^>]*>\s*<p[^>]*>([\s\S]*?)<\/p>\s*<\/li>/gi, '<li>$1</li>')
+    // (Optional) Clean <p> wrapping entire <ul>/<ol> (if present)
+    .replace(/<p[^>]*>\s*(<(ul|ol)[^>]*>[\s\S]*?<\/\2>)\s*<\/p>/gi, '$1')
+    .trim();
+}
+
+
+let blogLoaded = false;
+function loadRSS() {
+  const feedUrl = window.config.blogFeedURL;
+  
+  const feedContainer = document.getElementById("rssFeed");
+
+  if (!feedUrl) {
+    feedContainer.innerHTML = "There was an error or this website does not have associated blog yet.";
+    return;
+  }
+
+  fetch(feedUrl)
+    .then(response => response.text())
+    .then(str => {
+      const parser = new window.DOMParser();
+      const xmlDoc = parser.parseFromString(str, "text/xml");
+      const isAtom = xmlDoc.documentElement.nodeName.toLowerCase() === "feed";
+      let html = "";
+
+      if (!isAtom) {
+        const channelImage = xmlDoc.querySelector("channel > image > url")?.textContent;
+        if (channelImage) {
+          html += `<div style="text-align:center;">
+            <img src="${channelImage}" alt="Blog Avatar" style="border-radius:50%; max-width:120px; height:auto;">
+          </div>`;
+        }
+      }
+
+      const entries = isAtom ? xmlDoc.querySelectorAll("entry") : xmlDoc.querySelectorAll("item");
+      entries.forEach((entry, index) => {
+        if (index < 5) {
+          let title, link, pubDate, author, contentHTML, postImageTag = "";
+
+          if (isAtom) {
+            title = entry.querySelector("title")?.textContent || "Untitled";
+            link = entry.querySelector("link[rel='alternate']")?.getAttribute("href");
+            pubDate = entry.querySelector("published")?.textContent || "";
+            author = entry.querySelector("author > name")?.textContent || "Unknown";
+            contentHTML = entry.querySelector("content")?.textContent || "";
+          } else {
+            title = entry.querySelector("title")?.textContent || "Untitled";
+            link = entry.querySelector("link")?.textContent;
+            pubDate = entry.querySelector("pubDate")?.textContent || "";
+            author = entry.querySelector("author")?.textContent || "Unknown";
+            const description = entry.querySelector("description")?.textContent || "";
+            const contentEncoded = entry.querySelector("content\\:encoded")?.textContent || "";
+            contentHTML = contentEncoded || description;
+
+            const enclosureUrl = entry.querySelector("enclosure")?.getAttribute("url");
+            const imgRegex = /<img.*?src=["'](.*?)["']/i;
+            const imgMatch = contentEncoded.match(imgRegex);
+            const inlineImage = imgMatch ? imgMatch[1] : null;
+            const postImage = enclosureUrl || inlineImage;
+            if (postImage) {
+              postImageTag = `<div style="margin:0.5em 0;"><img src="${postImage}" alt="${title}" style="max-width:100%; height:auto;"></div>`;
+            }
+          }
+
+          // Optional: limit content length
+          //if (contentHTML.length > 5000) {
+          //  contentHTML = contentHTML.slice(0, 5000) + "...";
+          //}
+          
+          const cleanedContent = cleanContent(contentHTML);
+
+          // Instead of using <li>, use a container div for each entry
+          html += `
+            <div style="margin-bottom:2em; padding:1em; border:1px solid #ccc; border-radius:8px;" class="post-content">
+              <a href="${link}" target="_blank" rel="noopener" style="font-size:1.4em; font-weight:bold; text-decoration:none; color:#007acc;">${title}</a><br>
+              <small>${new Date(pubDate).toLocaleDateString()}${author ? ` by ${author}` : ""}</small>
+              ${postImageTag}
+              <div>${cleanedContent}</div>
+            </div>`;
+        }
+      });
+
+      feedContainer.innerHTML = html;
+      blogLoaded = true;
+    })
+    .catch(err => {
+      console.error("Failed to load feed:", err);
+      feedContainer.innerHTML = "<p>Unable to load posts. Please check back later.</p>";
+    });
+}
+
+function openPopupEvent({
+  title,
+  beginsOn,
+  endsOn = null,
+  address = {},
+  linkText,        // you can pass whatever you want here; openPopupEvent just renders it via getRedirectHTML()
+  description = '',
+  category = '',
+  eventId = null
+}) {
+  const popupCardEventId = document.getElementById("popupCardEventId");
+  if (eventId) {
+    popupCardEventId.textContent = eventId;
+  }
+  const popupOverlay = document.getElementById('popupOverlay');
+  const popupCard    = document.getElementById('popupCardContent');
+
+  // clear out any previous content
+  popupCard.innerHTML = '';
+
+  // build the card
+  const card = document.createElement('div');
+  card.className = 'popup-event-card';
+
+  const titleEl = document.createElement('h3');
+  titleEl.textContent = title;
+
+  const dateEl = document.createElement('p');
+  dateEl.innerHTML = `<strong>Date:</strong> ${new Date(beginsOn).toLocaleString()}`
+                   + (endsOn ? ` – ${new Date(endsOn).toLocaleString()}` : '');
+
+  const locEl = document.createElement('p');
+  locEl.innerHTML = `<strong>Location:</strong> ${address.locality || 'Unknown'}`;
+
+  const srcEl = document.createElement('p');
+  srcEl.innerHTML = `<strong>More details at:</strong> ${getRedirectHTML(linkText)}`;
+
+  card.append(titleEl, dateEl, locEl, srcEl);
+
+  if (description) {
+    const descEl = document.createElement('p');
+    descEl.classList.add('popup-card-description');
+    descEl.innerHTML = `<strong>Description:</strong> ${description}`;
+    card.append(descEl);
+  }
+    
+  const commentEl = document.createElement('section')
+  commentEl.id = 'isso-thread'
+  commentEl.setAttribute('data-isso-id', '/event_comments/' + linkText.url);
+
+  popupCard.append(card, commentEl);
+
+  // show the overlay
+  popupOverlay.classList.add('active');
+  
+  Isso.init()
+  Isso.fetchComments();
+
+  // one-time close listener
+  const close = () => {
+    popupOverlay.classList.remove('active');
+    popupOverlay.removeEventListener('click', close);
+    document.getElementById('closePopup').removeEventListener('click', close);
+    
+    popupCard.innerHTML = '';
+    popupCardEventId.textContent = null;
+    updateUrlParams();
+  };
+  document.getElementById('closePopup').addEventListener('click', close);
+  popupOverlay.addEventListener('click', e => {
+    if (e.target === popupOverlay) close();
+  });
+  Array.from(document.getElementsByClassName("sidebar-nav")).forEach(el => {
+    el.addEventListener('click', e => {
+      // There can only be one present isso thread or weirdness happens.
+      // Remove on new sidebar nav.
+      popupCard.innerHTML = '';
+      popupCardEventId.textContent = null;
+      updateUrlParams();
+    });
+  });
+  
+  updateUrlParams();
+}
+
+
+// Read ?… from window.location.search into an object
+function parseFiltersFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    text:    params.get('text')    || '',
+    start:   params.get('start')   || '',
+    end:     params.get('end')     || '',
+    towns:   params.getAll('town'),      // can be multiple
+    cats:    params.getAll('cat'),       // can be multiple
+    hideLoc: params.get('hide') === '1',
+    eventId: params.get('eventId') || ''
+  };
+}
+
+// Write current filter values back into the URL (no reload)
+function updateUrlParams() {
+  const params = new URLSearchParams();
+
+  if (textSearch.value)   params.set('text',  textSearch.value);
+  if (startDate.value)    params.set('start', startDate.value);
+  if (endDate.value)      params.set('end',   endDate.value);
+
+  // multiple towns
+  Array.from(townFilter.selectedOptions)
+       .map(o => o.value)
+       .filter(v => v)
+       .forEach(v => params.append('town', v));
+
+  // multiple categories
+  Array.from(categoryFilter.selectedOptions)
+       .map(o => o.value)
+       .filter(v => v)
+       .forEach(v => params.append('cat', v));
+
+  if (hideWithLocation.checked) params.set('hide','1');
+  
+  const popupEventCardIdEl = document.getElementById("popupCardEventId");
+  if (popupEventCardIdEl.textContent) {
+    params.set('eventId', popupEventCardIdEl.textContent);
+  }
+
+  const newUrl = window.location.pathname + '?' + params.toString();
+  history.replaceState(null, '', newUrl);
+}
+
+
 function getRedirectHTML(rawEvent, truncate = null) {
   const { externalParticipationUrl, onlineAddress, url } = rawEvent;
 
@@ -115,13 +382,18 @@ async function saveSurveyResults(url, json) {
 }
 
 (async () => {
-  const [config, events, about, createEventSurveyJS] = await Promise.all([
+  const [config, events, createEventSurveyJS] = await Promise.all([
     fetch('/config.json?v=4').then((r) => r.json()),
     fetch('/data/events.json?v=4').then((r) => r.json()),
-    fetch('/partials/about-tab.html?v=4').then((r) => r.text()),
+    //fetch('/partials/about-tab.html?v=4').then((r) => r.text()),
     fetch('/data/createEventSurveyJS.json?v=4').then((r) => r.json()),
   ]);
-  document.getElementById('aboutTab').outerHTML = about;
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+  window.config = config;
+  
+  //document.getElementById('aboutTab').outerHTML = about;
   document.title = config.siteTitle;
 
   // Create the survey
@@ -130,10 +402,27 @@ async function saveSurveyResults(url, json) {
   survey.onComplete.add(surveyComplete);
   // Customize the thank-you message and add a button to restart
   survey.completedHtml = `
-  <h3>Thank you for submitting your event!</h3>
-  <p>We'll review it and get back to you soon.</p>
-  <button id="restartSurveyBtn" style="margin-top:1em;">Submit Another Event</button>
-`;
+    <h3>Thank you for submitting your event!</h3>
+    <p>We'll review it and get back to you soon.</p>
+    <button id="restartSurveyBtn" style="margin-top:1em;">Submit Another Event</button>
+  `;
+  // Watch for begins_on value changes
+  survey.onValueChanged.add(function (sender, options) {
+    if (options.name === "begins_on") {
+      const beginsOnValue = options.value;
+
+      const endsOnQuestion = sender.getQuestionByName("ends_on");
+      if (endsOnQuestion && beginsOnValue) {
+        // Set the minimum selectable date for ends_on
+        endsOnQuestion.min = beginsOnValue;
+        
+        if (!endsOnQuestion.value || (new Date(endsOnQuestion.value) < new Date(beginsOnValue))) {
+          endsOnQuestion.value = beginsOnValue;
+        }
+      }
+    }
+  });
+
 
   survey.render(createEventTabEl);
 
@@ -180,14 +469,41 @@ async function saveSurveyResults(url, json) {
     config.mobilizonUrl.replace(/^https?:\/\//, '')
   );
   insertText('site-name-text', config.siteTitle);
-  insertText('topBanner', config.topBannerText, '#');
+  insertText('topBannerText', config.topBannerText, '#');
   if (config.splashText !== null) {
     insertText('splashText', config.splashText, '#');
+  }
+  if (config.blogLink) {
+    insertLink('blog-link', config.blogLink, 'here');
+  }
+  if (config.mastodonLink){
+    insertLink('mastodon-link', config.mastodonLink, 'here');
   }
 
   document.getElementById('startDate').value = new Date()
     .toISOString()
     .split('T')[0];
+    
+  // Filter collapse
+  const filterToggleBtn = document.getElementById('toggleFilters');
+  // Default section
+  const filters = document.getElementById('filtersContainer');
+  //filters.classList.remove('open'); // Always collapse on load
+
+  filterToggleBtn.addEventListener('click', () => {
+    const isOpen = filters.classList.toggle('open');
+    filterToggleBtn.textContent = isOpen ? 'Hide Filters ▲' : 'Show Filters ▼';
+  });
+  
+  // Open sidebar
+  document.getElementById("hamburgerButton").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.add("open");
+  });
+
+  
+  document.querySelectorAll('.mainSection').forEach(el => el.classList.remove('active'));
+  switchSection('viewEvents');
+
 
   // Initialize global variables for map and calendar instances
   let map = null;
@@ -241,6 +557,7 @@ async function saveSurveyResults(url, json) {
   }
 
   // About panel sidebar switching
+  /*
   document.querySelectorAll('.about-link').forEach((btn) => {
     btn.addEventListener('click', () => {
       document
@@ -253,6 +570,7 @@ async function saveSurveyResults(url, json) {
       document.getElementById(btn.dataset.panel).style.display = 'block';
     });
   });
+  */
 
   function renderEventCards(events, sortOrder = 'asc') {
     const container = document.getElementById('eventCards');
@@ -268,7 +586,6 @@ async function saveSurveyResults(url, json) {
       const card = document.createElement('div');
       const titleEl = document.createElement('h3');
       titleEl.textContent = event.title;
-
       const dateEl = document.createElement('p');
       dateEl.innerHTML = `<strong>Date:</strong> ${new Date(
         event.beginsOn
@@ -314,6 +631,21 @@ async function saveSurveyResults(url, json) {
         if (link) window.open(link, '_blank');
       });
       */
+      //
+      const details = {
+        title:       event.title,
+        beginsOn:    event.beginsOn,
+        endsOn:      event.endsOn,
+        address:     event.address,
+        linkText:    event,           // we’ll let getRedirectHTML pick url fields
+        description: event.description,
+        category:    event.category,
+        eventId:     event.url
+      };
+
+      // fire the popup
+      card.addEventListener('click', () => openPopupEvent(details));
+
 
       container.appendChild(card);
     });
@@ -333,16 +665,23 @@ async function saveSurveyResults(url, json) {
         username: event.username,
         address: event.address,
         linkText: getRedirectHTML(event, 12),
+        description: event.description,
+        externalParticipationUrl: event.externalParticipationUrl,
+        onlineAddress: event.onlineAddress,
+        url: event.url
       },
     }));
+
     const calendarEl = document.getElementById('calendar');
     let initialDateStr = new Date().toISOString().split('T')[0];
+    let viewType = "dayGridMonth";
     if (calendarInitialized) {
+      viewType = calendar.view.type;
       initialDateStr = calendar.getDate().toISOString().split('T')[0];
       calendar.destroy();
     }
     calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
+      initialView: viewType,
       initialDate: initialDateStr,
       headerToolbar: {
         left: 'prev,next today',
@@ -359,21 +698,46 @@ async function saveSurveyResults(url, json) {
         const pop = document.createElement('div');
         pop.id = 'fcPopover';
         pop.className = 'fc-popover';
+
+        // Extract event details
         const startTime = new Date(info.event.start).toLocaleString();
         const endTime = info.event.end
           ? ` – ${new Date(info.event.end).toLocaleString()}`
           : '';
-        const addr =
-          info.event.extendedProps.address.description ||
-          (info.event.extendedProps.address.street || '') +
-            ', ' +
-            (info.event.extendedProps.address.locality || '');
+        const addr = info.event.extendedProps.address.description ||
+          (info.event.extendedProps.address.street || '') + ', ' +
+          (info.event.extendedProps.address.locality || '');
+
+        const evt = info.event;
+        const details = {
+          title:       evt.title,
+          beginsOn:    evt.start,
+          endsOn:      evt.end,
+          address:     evt.extendedProps.address,
+          linkText:    {
+            externalParticipationUrl: evt.extendedProps.externalParticipationUrl,
+            onlineAddress:            evt.extendedProps.onlineAddress,
+            url:                      evt.extendedProps.url
+          },
+          description: evt.extendedProps.description || '',
+          category:    evt.extendedProps.category || '',
+          eventId:     evt.extendedProps.url
+        };
+
+        // Create inner HTML
         pop.innerHTML = `
-              <h4>${info.event.title}</h4>
-              <p>${startTime}${endTime}</p>
-              <p>${addr}</p>
-              More details at ${info.event.extendedProps.linkText}
-            `;
+          <h4>${info.event.title}</h4>
+          <p>${startTime}${endTime}</p>
+          <p>${addr}</p>
+        `;
+
+        // Create the "Show more" button
+        const showMoreBtn = document.createElement('button');
+        showMoreBtn.textContent = 'Show more';
+        showMoreBtn.addEventListener('click', () => openPopupEvent(details));
+
+        // Append the button to the popup
+        pop.appendChild(showMoreBtn);
 
         // Temporarily position it off-screen so we can measure it
         pop.style.position = 'absolute';
@@ -471,6 +835,7 @@ async function saveSurveyResults(url, json) {
         .addEventListener('click', renderOnce);
     }
 
+
     // Map and marker clusters
     if (!map) {
       map = L.map('map').setView([43.6, -72.97], 8);
@@ -494,13 +859,41 @@ async function saveSurveyResults(url, json) {
           const endsOnStr = event.endsOn
             ? ` – ${new Date(event.endsOn).toLocaleString()}`
             : '';
+          const details = {
+            title:       event.title,
+            beginsOn:    event.beginsOn,
+            endsOn:      event.endsOn,
+            address:     event.address,
+            linkText:    event,       // again: getRedirectHTML(event) will pick urls
+            description: event.description,
+            category:    event.category,
+            eventId:     event.url
+          };
 
           marker.bindPopup(
             `<strong>${event.title}</strong><br>
              ${beginsOnStr}${endsOnStr}<br>
-             More details at ${getRedirectHTML(event)}`
+             <a href="#" class="show-more-link">Show more…</a>`
           );
-          // no click-handler needed: Leaflet will open the popup on tap
+          marker.on('popupopen', (e) => {
+          // `e.popup` is the Leaflet popup that just opened
+          // Grab its DOM container…
+          const popupEl = e.popup.getElement();
+
+          // Find our “Show more” link inside it…
+          const btn = popupEl.querySelector('.show-more-link');
+          if (!btn) return;
+
+          btn.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            // close the small Leaflet popup
+            //e.popup._close();
+
+            // now open our fullscreen overlay
+            openPopupEvent(details);
+          });
+        });
+
 
           markerCluster.addLayer(marker);
         }
@@ -529,7 +922,7 @@ async function saveSurveyResults(url, json) {
   }
 
   // Update filter dropdowns dynamically based on event list
-  function updateFilterOptions(catEvents, townEvents) {
+  /*function updateFilterOptions(catEvents, townEvents) {
     const townFilter = document.getElementById('townFilter');
     const categoryFilter = document.getElementById('categoryFilter');
 
@@ -576,7 +969,62 @@ async function saveSurveyResults(url, json) {
         categoryFilter.appendChild(opt);
       });
     categoryFilter.value = catCounts[selectedCategory] ? selectedCategory : '';
+  }*/
+  
+  function updateFilterOptions(catEvents, townEvents) {
+    const townFilter = document.getElementById('townFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+
+    // 1) remember previous selections
+    const prevTowns = Array.from(townFilter.selectedOptions).map(o => o.value);
+    const prevCats  = Array.from(categoryFilter.selectedOptions).map(o => o.value);
+
+    // 2) rebuild the option lists
+    const townCounts = townEvents.reduce((acc, e) => {
+      const t = e.address?.locality?.trim();
+      if (t) acc[t] = (acc[t] || 0) + 1;
+      return acc;
+    }, {});
+    townFilter.innerHTML = '';
+    // “All Towns”
+    const allTownOpt = document.createElement('option');
+    allTownOpt.value = '';
+    allTownOpt.textContent = 'All Towns';
+    // if user had “All” or nothing selected, keep All selected
+    allTownOpt.selected = prevTowns.length === 0 || prevTowns.includes('');
+    townFilter.appendChild(allTownOpt);
+
+    Object.keys(townCounts).sort().forEach((town) => {
+      const opt = document.createElement('option');
+      opt.value = town;
+      opt.textContent = `${town} (${townCounts[town]})`;
+      // re-select if previously chosen
+      if (prevTowns.includes(town)) opt.selected = true;
+      townFilter.appendChild(opt);
+    });
+
+    // Same for categories
+    const catCounts = catEvents.reduce((acc, e) => {
+      const c = e.category?.trim();
+      if (c) acc[c] = (acc[c] || 0) + 1;
+      return acc;
+    }, {});
+    categoryFilter.innerHTML = '';
+    const allCatOpt = document.createElement('option');
+    allCatOpt.value = '';
+    allCatOpt.textContent = 'All Categories';
+    allCatOpt.selected = prevCats.length === 0 || prevCats.includes('');
+    categoryFilter.appendChild(allCatOpt);
+
+    Object.keys(catCounts).sort().forEach((cat) => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = `${humanizeCategory(cat)} (${catCounts[cat]})`;
+      if (prevCats.includes(cat)) opt.selected = true;
+      categoryFilter.appendChild(opt);
+    });
   }
+
 
   updateFilterOptions(events, events);
   renderEvents(events);
@@ -588,12 +1036,50 @@ async function saveSurveyResults(url, json) {
   const categoryFilter = document.getElementById('categoryFilter');
   const hideWithLocation = document.getElementById('hideWithLocation');
 
-  function filterEvents() {
+  // 1) parse URL
+  const urlFilters = parseFiltersFromUrl();
+  const initialEventPopupId = urlFilters.eventId;
+
+  // 2) set inputs
+  textSearch.value = urlFilters.text;
+  startDate.value = urlFilters.start || new Date().toISOString().split('T')[0];
+  endDate.value    = urlFilters.end;
+  hideWithLocation.checked = urlFilters.hideLoc;
+
+  // 3) set multi-selects
+  Array.from(townFilter.options).forEach(opt => {
+    opt.selected = urlFilters.towns.length === 0
+                 ? (opt.value === '')
+                 : urlFilters.towns.includes(opt.value);
+  });
+  Array.from(categoryFilter.options).forEach(opt => {
+    opt.selected = urlFilters.cats.length === 0
+                 ? (opt.value === '')
+                 : urlFilters.cats.includes(opt.value);
+  });
+  
+  if (
+    urlFilters.text ||
+    urlFilters.end ||
+    (urlFilters.towns && urlFilters.towns.length > 0) ||
+    (urlFilters.cats && urlFilters.cats.length > 0)
+  ) {
+    filterToggleBtn.click();
+  }
+
+  function filterEvents(applyFilterButtonPress=false) {
     const text = textSearch.value.toLowerCase();
     const start = new Date(startDate.value);
     const end = new Date(endDate.value);
-    const town = townFilter.value.toLowerCase();
-    const category = categoryFilter.value.toLowerCase();
+    //const town = townFilter.value.toLowerCase();
+    const selectedTowns = Array.from(townFilter.selectedOptions)
+                            .map(o => o.value.toLowerCase());
+    // if “All Towns” is selected we treat it as “no filter”
+    const filterAllTowns = selectedTowns.includes('');
+    //const category = categoryFilter.value.toLowerCase();
+    const selectedCats = Array.from(categoryFilter.selectedOptions)
+                          .map(o => o.value.toLowerCase());
+    const filterAllCats = selectedCats.includes('');
     const targetId = getActiveTab();
     const doHide = targetId === 'cardsTab' && hideWithLocation.checked;
 
@@ -604,8 +1090,10 @@ async function saveSurveyResults(url, json) {
         event.address?.description?.toLowerCase().includes(text) ||
         event.address?.locality?.toLowerCase().includes(text) ||
         (event.category || '').toLowerCase().includes(text);
-      const matchTown =
-        !town || event.address?.locality?.toLowerCase() === town;
+      //const matchTown =
+      //  !town || event.address?.locality?.toLowerCase() === town;
+      const eventTown = (event.address?.locality || '').toLowerCase();
+      const matchTown = filterAllTowns || selectedTowns.includes(eventTown);
       const inDateRange =
         (!startDate.value || d >= start) && (!endDate.value || d <= end);
       const matchLocation = !doHide || !event.address.geom;
@@ -620,8 +1108,10 @@ async function saveSurveyResults(url, json) {
         event.address?.description?.toLowerCase().includes(text) ||
         event.address?.locality?.toLowerCase().includes(text) ||
         (event.category || '').toLowerCase().includes(text);
-      const matchCategory =
-        !category || (event.category || '').toLowerCase() === category;
+      //const matchCategory =
+      //  !category || (event.category || '').toLowerCase() === category;
+      const eventCat = (event.category || '').toLowerCase();
+      const matchCategory = filterAllCats || selectedCats.includes(eventCat);
       const inDateRange =
         (!startDate.value || d >= start) && (!endDate.value || d <= end);
       const matchLocation = !doHide || !event.address.geom;
@@ -636,10 +1126,15 @@ async function saveSurveyResults(url, json) {
         event.address?.description?.toLowerCase().includes(text) ||
         event.address?.locality?.toLowerCase().includes(text) ||
         (event.category || '').toLowerCase().includes(text);
-      const matchTown =
-        !town || event.address?.locality?.toLowerCase() === town;
-      const matchCategory =
-        !category || (event.category || '').toLowerCase() === category;
+      //const matchTown =
+      //  !town || event.address?.locality?.toLowerCase() === town;
+      const eventTown = (event.address?.locality || '').toLowerCase();
+      const matchTown = filterAllTowns || selectedTowns.includes(eventTown);
+      
+      //const matchCategory =
+      //  !category || (event.category || '').toLowerCase() === category;
+      const eventCat = (event.category || '').toLowerCase();
+      const matchCategory = filterAllCats || selectedCats.includes(eventCat);
       const inDateRange =
         (!startDate.value || d >= start) && (!endDate.value || d <= end);
       const matchLocation = !doHide || !event.address.geom;
@@ -651,12 +1146,38 @@ async function saveSurveyResults(url, json) {
 
     updateFilterOptions(filteredIgnoreCat, filteredIgnoreTown);
     renderEvents(filtered);
+    // after filters & rendering…
+    updateUrlParams();  
+
+    setTimeout(() => {
+      const activeTab = getActiveTab();
+      console.log(calendar);
+      if (activeTab === "calendarTab" && calendar && calendar.view.type === 'dayGridMonth') {
+        const firstEventEl = document.querySelector('.fc-event');
+        const scrollerEl = document.querySelector('.fc-scroller');
+        if (firstEventEl && scrollerEl) {
+          const priorWindowScrollY = window.scrollY;
+          firstEventEl.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start', // or 'center'
+            alignToTop: false,
+            container: 'nearest'
+          });
+          if (!applyFilterButtonPress) {
+            window.scrollTo({ top: priorWindowScrollY });
+          }
+        }
+      }
+    }, 100);
   }
 
+
+  // 4) apply immediately
+  filterEvents();
   // Listen to submit filter button
   document.getElementById('applyFilters').addEventListener('click', (e) => {
     e.preventDefault();
-    filterEvents();
+    filterEvents(true);
   });
 
   // Attach filter listeners
@@ -672,6 +1193,22 @@ async function saveSurveyResults(url, json) {
 
   // Initial render with default sort (upcoming first)
   filterEvents();
+  console.log(initialEventPopupId);
+  if (initialEventPopupId) {
+    const initialPopup = events.find(evt => evt.url === initialEventPopupId);
+    const details = {
+        title:       initialPopup.title,
+        beginsOn:    initialPopup.beginsOn,
+        endsOn:      initialPopup.endsOn,
+        address:     initialPopup.address,
+        linkText:    initialPopup,           // we’ll let getRedirectHTML pick url fields
+        description: initialPopup.description,
+        category:    initialPopup.category,
+        eventId:     initialPopup.url
+      };
+    openPopupEvent(details);
+  }
+
 
   // Remove loader
   const loader = document.getElementById('loader');
