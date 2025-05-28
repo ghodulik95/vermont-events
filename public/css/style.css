@@ -31,15 +31,65 @@ p {
 #splashText {
   margin: 8px 2px;
 }
+
+#toggleFilters {
+  background: #ffc107; /* Bright accent color */
+  color: #fff; /* White text */
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 25px; /* Rounded pill shape */
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: background 0.1s ease, transform 0.1s ease;
+  margin: 0.5rem; /* Adjust as needed */
+}
+
+#toggleFilters:hover {
+  background: #e0a800; /* Slightly darker on hover */
+  transform: scale(1.03); /* Slight zoom effect */
+}
+
+#toggleFilters:active {
+  transform: scale(0.95); /* Subtle press effect */
+}
+
+#toggleFilters:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.5); /* Accent glow on focus */
+}
+
 /* Search & Filter */
+/* Filters container with transition */
+#filtersContainer {
+  overflow: hidden;
+  max-height: 0;              /* Start collapsed */
+  transition: max-height 0.4s ease, margin 0.4s ease-out;
+  padding: 1rem;         /* Padding removed when collapsed */
+}
+
+#filtersContainer.open {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin: 1rem 0;
+  max-height: 1000px;
+}
+/* Make #filters the flex container */
 #filters {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 12px;
   margin: 1rem 0;
-  padding: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box; /* Ensure padding doesn't increase width */
 }
+
 #filters input,
 #filters select {
   padding: 8px;
@@ -52,6 +102,21 @@ p {
 #filters select:focus {
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
 }
+
+#filtersContainer,
+.tabContent {
+  width: 100%;
+  max-width: 1000px; /* Or your preferred width */
+  margin: 0 auto;    /* Center alignment */
+  box-sizing: border-box; /* Prevent padding/border size issues */
+}
+
+#cardsTab {
+  max-height: 90vh;
+  overflow-y: auto;
+  display: block;
+}
+
 /* Tab button container layout */
 #tabButtons {
   position: relative;
@@ -110,7 +175,7 @@ p {
 }
 .fc-event:hover {
   transform: scale(1.03);
-  z-index: 9999;
+  z-index: 1000;
 }
 /* Map container */
 #map {
@@ -502,6 +567,7 @@ p {
 #popupOverlay.active {
   display: flex;
   overflow: hidden;
+  width: 100%;
 }
 
 /* Popup card */
@@ -513,12 +579,14 @@ p {
   width: 90%;
   animation: scaleIn 0.3s;
   position: relative;
-   max-height: 80vh;
+  max-height: 80vh;
   /* let it grow/shrink within that limit */
   height: auto;
   /* enable vertical scrolling when needed */
   overflow-y: auto;
+  z-index: 2000;
 }
+
 
 
 
@@ -543,3 +611,137 @@ p {
   to { transform: scale(1); opacity: 1; }
 }
 
+.mainSection:not(.active) {
+  transform: translateX(100%);
+  visibility: hidden;
+  position: absolute;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+
+.mainSection.active {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  position: relative;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  max-width: 100%;
+}
+
+
+
+/* Hamburger Button Styles */
+.hamburger {
+  font-size: 30px;
+  cursor: pointer;
+  padding: 4px 8px;
+  position: absolute;
+  top: 0px;
+  right: 10px;
+  z-index: 10001;
+}
+
+/* Sidebar Styles */
+#sidebar {
+  position: fixed;
+  z-index: 10000;
+  top: 0;
+  right: 0;
+  width: 300px; /* Set a fixed width */
+  height: 100%;
+  background-color: #333;
+  color: white;
+  padding-top: 60px;
+  transition: transform 0.3s ease;
+  transform: translateX(100%); /* Hide it fully */
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+}
+
+#sidebar.open {
+  transform: translateX(0); /* Slide in */
+}
+
+
+#sidebar a {
+  padding: 10px 20px;
+  text-decoration: none;
+  color: white;
+  display: block;
+  transition: 0.3s;
+}
+
+#sidebar a:hover {
+  background-color: #575757;
+}
+
+#sidebar .closebtn {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  font-size: 36px;
+  background: none;       /* Remove default button background */
+  border: none;           /* Remove default border */
+  color: white;           /* Make the X white to match theme */
+  cursor: pointer;        /* Add cursor pointer */
+  line-height: 1;         /* Tighten line spacing */
+  padding: 0;             /* Remove extra padding */
+  width: auto;            /* Don't stretch */
+  height: auto;           /* Don't stretch */
+}
+
+
+@media screen and (max-width: 768px) {
+  .hamburger {
+    font-size: 25px;
+    padding: 8px;
+  }
+}
+
+#rssFeed {
+  max-width: 800px;
+}
+/*
+#rssFeed ul {
+  list-style: none;
+  padding: 0;
+}
+#rssFeed li {
+  margin-bottom: 1.5em;
+  padding: 0.5em;
+  border-bottom: 1px solid #ccc;
+}
+#rssFeed li a {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-decoration: none;
+  color: #007acc;
+}
+
+*/
+
+#rssFeed li a:hover {
+  text-decoration: underline;
+}
+#rssFeed small {
+  color: #666;
+}
+
+.post-content ul {
+  list-style: disc;
+  margin-left: 1.5em;
+}
+.post-content ol {
+  list-style: decimal;
+  margin-left: 1.5em;
+}
+.post-content blockquote {
+  border-left: 3px solid #ccc;
+  padding-left: 1em;
+  margin-left: 0;
+  color: #555;
+}
+
+body, #mainContent {
+  overflow-x: hidden;
+  scroll-margin-top: 10px;
+}

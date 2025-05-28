@@ -88,111 +88,156 @@
     </div>
 
     <div id="topBanner">
-      Alpha testing notice: This site is under active development.
+      <span id="topBannerText">Alpha testing notice: This site is under active development.</span>
+      <div id="hamburgerButton" class="hamburger">&#9776;</div>
     </div>
     <a href="issue" target="_blank" id="floatingButton">Submit an issue</a>
-    <h1>Welcome to <span class="site-name-text"></span></h1>
-    <p id="splashText">
-      On this site, community events from around the state are aggregated for
-      your convenience!
-    </p>
-    <form id="filters">
-      <div class="filter-group">
-        <label for="textSearch">Search Events</label>
-        <input type="text" id="textSearch" placeholder="Enter keywords…" />
-      </div>
-
-      <div class="filter-group">
-        <label for="startDate">Start Date</label>
-        <input type="date" id="startDate" />
-      </div>
-
-      <div class="filter-group">
-        <label for="endDate">End Date</label>
-        <input type="date" id="endDate" />
-      </div>
-
-      <div class="filter-group">
-        <label for="townFilter">Town</label>
-        <select id="townFilter" multiple>
-          <option value="">All Towns</option>
-          <!-- …other options… -->
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label for="categoryFilter">Category</label>
-        <select id="categoryFilter" multiple>
-          <option value="">All Categories</option>
-          <!-- …other options… -->
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label aria-hidden="true">&nbsp;</label>
-        <button type="submit" id="applyFilters">Apply Filters</button>
-      </div>
-    </form>
-
-    <div id="tabButtons">
-      <button class="tabButton" data-tab="calendarTab">Calendar</button>
-      <button class="tabButton" data-tab="mapTab">Map</button>
-      <button class="tabButton" data-tab="cardsTab">Event Cards</button>
-      <!-- Later will point to createEventTab and not createEventTabWrapper !-->
-      <button
-        class="tabButton createEventButton"
-        data-tab="createEventTabWrapper"
-      >
-        +
-      </button>
-      <button class="tabButton aboutButton" data-tab="aboutTab">About</button>
+    <div id="sidebar">
+      <button class="closebtn" onclick="closeSidebar()">&times;</button>
+      <a href="#" onclick="switchSection('viewEvents')" class="sidebar-nav">View Events</a>
+      <a href="#" onclick="switchSection('aboutSection')" class="sidebar-nav">About</a>
+      <a href="#" onclick="switchSection('blogSection')" class="sidebar-nav">Blog</a>
+      <a href="#" onclick="switchSection('commentSection')" class="sidebar-nav">Comment</a>
     </div>
-    <div id="calendarTab" class="tabContent">
-      <div id="calendarIndicators" class="view-indicators"></div>
-      <div id="calendar"></div>
-    </div>
-    <div id="mapTab" class="tabContent" style="display: none">
-      <div id="mapIndicators" class="view-indicators"></div>
-      <div id="map"></div>
-    </div>
-    <div id="cardsTab" class="tabContent" style="display: none">
-      <div class="cards-controls">
-        <div class="cards-sort">
-          <label for="sortOrder">Sort by:</label>
-          <select id="sortOrder">
-            <option value="asc" selected>Upcoming first</option>
-            <option value="desc">Furthest first</option>
-          </select>
-        </div>
+    <div id="mainContent">
+      <div id="viewEvents" class="mainSection active">
+        <h1>Welcome to <span class="site-name-text"></span></h1>
+        <p id="splashText">
+          On this site, community events from around the state are aggregated for
+          your convenience!
+        </p>
+        <div class="filters-container">
+          <button id="toggleFilters">Show Filters ▼</button>
+          <div id="filtersContainer">
+            <form id="filters">
+              <div class="filter-group">
+                <label for="textSearch">Search Events</label>
+                <input type="text" id="textSearch" placeholder="Enter keywords…" />
+              </div>
 
-        <div class="cards-toggle">
-          <div class="advanced-toggle">
-            <span class="tooltip"
-              >?
-              <span class="tooltiptext">
-                Only show events missing location info (which do not appear in
-                map view)
-              </span>
-            </span>
-            <input type="checkbox" id="hideWithLocation" />
-            <label for="hideWithLocation">Hide events with location data</label>
+              <div class="filter-group">
+                <label for="startDate">Start Date</label>
+                <input type="date" id="startDate" />
+              </div>
+
+              <div class="filter-group">
+                <label for="endDate">End Date</label>
+                <input type="date" id="endDate" />
+              </div>
+
+              <div class="filter-group">
+                <label for="townFilter">Town</label>
+                <select id="townFilter" multiple>
+                  <option value="">All Towns</option>
+                  <!-- …other options… -->
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label for="categoryFilter">Category</label>
+                <select id="categoryFilter" multiple>
+                  <option value="">All Categories</option>
+                  <!-- …other options… -->
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label aria-hidden="true">&nbsp;</label>
+                <button type="submit" id="applyFilters">Apply Filters</button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
-      <div id="eventCards"></div>
-    </div>
-    <!-- Later will remove wrapper and add tabContent class to the createEventTab !-->
-    <div id="createEventTabWrapper" class="tabContent">
-      <span id="createEventWarning"></span>
-      <div id="createEventTab"><!-- loaded by JS --></div>
-    </div>
-    <div id="aboutTab" class="tabContent"><!-- loaded by JS --></div>
 
-    <!-- Fullscreen Popup -->
-    <div id="popupOverlay">
-      <div id="popupCard">
-        <div id="popupCardContent"></div>
-        <button id="closePopup">&times;</button>
+        <div id="tabButtons">
+          <button class="tabButton" data-tab="calendarTab">Calendar</button>
+          <button class="tabButton" data-tab="mapTab">Map</button>
+          <button class="tabButton" data-tab="cardsTab">Event Cards</button>
+          <!-- Later will point to createEventTab and not createEventTabWrapper !-->
+          <button
+            class="tabButton createEventButton"
+            data-tab="createEventTabWrapper"
+          >
+            +
+          </button>
+        </div>
+        <div id="calendarTab" class="tabContent">
+          <div id="calendarIndicators" class="view-indicators"></div>
+          <div id="calendar"></div>
+        </div>
+        <div id="mapTab" class="tabContent" style="display: none">
+          <div id="mapIndicators" class="view-indicators"></div>
+          <div id="map"></div>
+        </div>
+        <div id="cardsTab" class="tabContent" style="display: none">
+          <div class="cards-controls">
+            <div class="cards-sort">
+              <label for="sortOrder">Sort by:</label>
+              <select id="sortOrder">
+                <option value="asc" selected>Upcoming first</option>
+                <option value="desc">Furthest first</option>
+              </select>
+            </div>
+
+            <div class="cards-toggle">
+              <div class="advanced-toggle">
+                <span class="tooltip"
+                  >?
+                  <span class="tooltiptext">
+                    Only show events missing location info (which do not appear in
+                    map view)
+                  </span>
+                </span>
+                <input type="checkbox" id="hideWithLocation" />
+                <label for="hideWithLocation">Hide events with location data</label>
+              </div>
+            </div>
+          </div>
+          <div id="eventCards"></div>
+        </div>
+        <!-- Later will remove wrapper and add tabContent class to the createEventTab !-->
+        <div id="createEventTabWrapper" class="tabContent">
+          <span id="createEventWarning"></span>
+          <div id="createEventTab"><!-- loaded by JS --></div>
+        </div>
+
+        <!-- Fullscreen Popup -->
+        <div id="popupOverlay">
+          <div id="popupCard">
+            <div id="popupCardContent"></div>
+            <span id="popupCardEventId" style="display: none;"></span>
+            <button id="closePopup">&times;</button>
+          </div>
+        </div>
+        
+      </div>
+      
+      
+      <div id="aboutSection" class="mainSection">
+        <h1>Reports Section</h1>
+        <p>Here you can view analytics and reports about the events.</p>
+      </div>
+
+      <div id="blogSection" class="mainSection">
+        <h1>Blog</h1>
+        <p><span class="site-name-text"></span> Blog</p>
+        <p>See posts about site updates and highlighted events below.</p>
+        <p>
+          Follow the blog 
+          <span class="blog-link"></span>!
+          Blog posts are also shared on Mastodon <span class="mastodon-link"></span>
+        </p>
+
+        <div id="rssFeed">
+          <p>Loading latest posts...</p>
+        </div>
+
+      </div>
+
+      
+      <div id="commentSection" class="mainSection">
+        <h1>Public comments</h1>
+        <div id="publicComments"></div>
       </div>
     </div>
 
@@ -200,58 +245,5 @@
     <script src="./js/app.js?v=4"></script>
     <script data-isso="https://comments.vermontmobilizon.xyz/"
         src="https://comments.vermontmobilizon.xyz/js/embed.min.js"></script>
-<!--    
-    <script data-isso="https://comments.vermontmobilizon.xyz/"
-        src="https://comments.vermontmobilizon.xyz/js/embed.min.js"></script>
-<h2>Thread One</h2>
-<section id="isso-thread" >
-    <noscript>Javascript needs to be activated to view comments for Thread One.</noscript>
-</section>
-
-<h2>Thread Two</h2>
-<!-- None of these comment counts seems to work 
-<a href="/" data-isso-id=="./index.html#thread-two">Comments</a>
-or
-<a href="/" data-isso-id=="/thread-two">Comments</a>
-or
-<a href="/" data-isso-id=="thread-two">Comments</a>
-or
-<a href="/" data-isso-id=="./thread-two">Comments</a>
-or
-<a href="/index.html" data-isso-id=="./index.html#thread-two">Comments</a>
-or
-<a href="/index.html" data-isso-id=="/thread-two">Comments</a>
-or
-<a href="/index.html" data-isso-id=="thread-two">Comments</a>
-or
-<a href="/index.html" data-isso-id=="./thread-two">Comments</a>
-<section id="not-isso-thread" data-isso-id="/thread-two">
-    <noscript>Javascript needs to be activated to view comments for Thread One.</noscript>
-</section>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    // Testing if comment functinonality works even when id is removed from section
-    //let element = document.getElementById('isso-thread');
-    //element.removeAttribute('id');
-    
-    // Now testing another comment section
-    //element = document.getElementById('not-isso-thread');
-    //element.id = 'isso-thread';
-    
-    //Isso.init();
-    //Isso.fetchComments();
-    
-    // Okay after testing this it looks like only one comment element at a time can works
-    
-    
-    
-    // I think this how it works:
-    // Isso.fetchComments() will pull comments into the initialized #isso-thread
-    // If dynamically making new #isso-thread, must  call Isso.init() first
-    // data-isso-id="/thread-one" provides key for comment section
-  });
-</script>
-!-->
   </body>
 </html>

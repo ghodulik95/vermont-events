@@ -13,6 +13,141 @@ function detectMobile() {
   return /Android|iPhone|iPad|iPod|Opera Mini/i.test(navigator.userAgent);
 }
 
+
+// Close sidebar
+function closeSidebar() {
+  document.getElementById("sidebar").classList.remove("open");
+}
+
+// Switch entire sections
+function switchSection(sectionId) {
+  closeSidebar();
+  // Hide all sections with fade out
+  document.querySelectorAll('.mainSection').forEach(el => {
+    el.classList.remove('active');
+  });
+
+  // Show the selected section with fade in
+  const section = document.getElementById(sectionId);
+  section.classList.add('active');
+  
+  if (sectionId === "commentSection") {
+    const commentDiv = document.getElementById('publicComments');
+    const commentEl = document.createElement('section')
+    commentEl.id = 'isso-thread'
+    commentEl.setAttribute('data-isso-id', '/public-comments');
+
+    commentDiv.append(commentEl);
+    
+    Isso.init()
+    Isso.fetchComments();
+    Array.from(document.getElementsByClassName("sidebar-nav")).forEach(el => {
+      // There can only be one present isso thread or weirdness happens.
+      // Remove on new sidebar nav.
+      el.addEventListener('click', e => {
+        commentDiv.innerHTML = '';
+      });
+    });
+  } else if (sectionId === "blogSection" && !blogLoaded) {
+    loadRSS();
+  }
+}
+
+function cleanContent(content) {
+  return content
+    // Remove <p> tags inside <li> elements, keeping inner text/HTML
+    .replace(/<li[^>]*>\s*<p[^>]*>([\s\S]*?)<\/p>\s*<\/li>/gi, '<li>$1</li>')
+    // (Optional) Clean <p> wrapping entire <ul>/<ol> (if present)
+    .replace(/<p[^>]*>\s*(<(ul|ol)[^>]*>[\s\S]*?<\/\2>)\s*<\/p>/gi, '$1')
+    .trim();
+}
+
+
+let blogLoaded = false;
+function loadRSS() {
+  const feedUrl = window.config.blogFeedURL;
+  
+  const feedContainer = document.getElementById("rssFeed");
+
+  if (!feedUrl) {
+    feedContainer.innerHTML = "There was an error or this website does not have associated blog yet.";
+    return;
+  }
+
+  fetch(feedUrl)
+    .then(response => response.text())
+    .then(str => {
+      const parser = new window.DOMParser();
+      const xmlDoc = parser.parseFromString(str, "text/xml");
+      const isAtom = xmlDoc.documentElement.nodeName.toLowerCase() === "feed";
+      let html = "";
+
+      if (!isAtom) {
+        const channelImage = xmlDoc.querySelector("channel > image > url")?.textContent;
+        if (channelImage) {
+          html += `<div style="text-align:center;">
+            <img src="${channelImage}" alt="Blog Avatar" style="border-radius:50%; max-width:120px; height:auto;">
+          </div>`;
+        }
+      }
+
+      const entries = isAtom ? xmlDoc.querySelectorAll("entry") : xmlDoc.querySelectorAll("item");
+      entries.forEach((entry, index) => {
+        if (index < 5) {
+          let title, link, pubDate, author, contentHTML, postImageTag = "";
+
+          if (isAtom) {
+            title = entry.querySelector("title")?.textContent || "Untitled";
+            link = entry.querySelector("link[rel='alternate']")?.getAttribute("href");
+            pubDate = entry.querySelector("published")?.textContent || "";
+            author = entry.querySelector("author > name")?.textContent || "Unknown";
+            contentHTML = entry.querySelector("content")?.textContent || "";
+          } else {
+            title = entry.querySelector("title")?.textContent || "Untitled";
+            link = entry.querySelector("link")?.textContent;
+            pubDate = entry.querySelector("pubDate")?.textContent || "";
+            author = entry.querySelector("author")?.textContent || "Unknown";
+            const description = entry.querySelector("description")?.textContent || "";
+            const contentEncoded = entry.querySelector("content\\:encoded")?.textContent || "";
+            contentHTML = contentEncoded || description;
+
+            const enclosureUrl = entry.querySelector("enclosure")?.getAttribute("url");
+            const imgRegex = /<img.*?src=["'](.*?)["']/i;
+            const imgMatch = contentEncoded.match(imgRegex);
+            const inlineImage = imgMatch ? imgMatch[1] : null;
+            const postImage = enclosureUrl || inlineImage;
+            if (postImage) {
+              postImageTag = `<div style="margin:0.5em 0;"><img src="${postImage}" alt="${title}" style="max-width:100%; height:auto;"></div>`;
+            }
+          }
+
+          // Optional: limit content length
+          //if (contentHTML.length > 5000) {
+          //  contentHTML = contentHTML.slice(0, 5000) + "...";
+          //}
+          
+          const cleanedContent = cleanContent(contentHTML);
+
+          // Instead of using <li>, use a container div for each entry
+          html += `
+            <div style="margin-bottom:2em; padding:1em; border:1px solid #ccc; border-radius:8px;" class="post-content">
+              <a href="${link}" target="_blank" rel="noopener" style="font-size:1.4em; font-weight:bold; text-decoration:none; color:#007acc;">${title}</a><br>
+              <small>${new Date(pubDate).toLocaleDateString()}${author ? ` by ${author}` : ""}</small>
+              ${postImageTag}
+              <div>${cleanedContent}</div>
+            </div>`;
+        }
+      });
+
+      feedContainer.innerHTML = html;
+      blogLoaded = true;
+    })
+    .catch(err => {
+      console.error("Failed to load feed:", err);
+      feedContainer.innerHTML = "<p>Unable to load posts. Please check back later.</p>";
+    });
+}
+
 function openPopupEvent({
   title,
   beginsOn,
@@ -20,8 +155,13 @@ function openPopupEvent({
   address = {},
   linkText,        // you can pass whatever you want here; openPopupEvent just renders it via getRedirectHTML()
   description = '',
-  category = ''
+  category = '',
+  eventId = null
 }) {
+  const popupCardEventId = document.getElementById("popupCardEventId");
+  if (eventId) {
+    popupCardEventId.textContent = eventId;
+  }
   const popupOverlay = document.getElementById('popupOverlay');
   const popupCard    = document.getElementById('popupCardContent');
 
@@ -71,11 +211,26 @@ function openPopupEvent({
     popupOverlay.classList.remove('active');
     popupOverlay.removeEventListener('click', close);
     document.getElementById('closePopup').removeEventListener('click', close);
+    
+    popupCard.innerHTML = '';
+    popupCardEventId.textContent = null;
+    updateUrlParams();
   };
   document.getElementById('closePopup').addEventListener('click', close);
   popupOverlay.addEventListener('click', e => {
     if (e.target === popupOverlay) close();
   });
+  Array.from(document.getElementsByClassName("sidebar-nav")).forEach(el => {
+    el.addEventListener('click', e => {
+      // There can only be one present isso thread or weirdness happens.
+      // Remove on new sidebar nav.
+      popupCard.innerHTML = '';
+      popupCardEventId.textContent = null;
+      updateUrlParams();
+    });
+  });
+  
+  updateUrlParams();
 }
 
 
@@ -89,6 +244,7 @@ function parseFiltersFromUrl() {
     towns:   params.getAll('town'),      // can be multiple
     cats:    params.getAll('cat'),       // can be multiple
     hideLoc: params.get('hide') === '1',
+    eventId: params.get('eventId') || ''
   };
 }
 
@@ -113,6 +269,11 @@ function updateUrlParams() {
        .forEach(v => params.append('cat', v));
 
   if (hideWithLocation.checked) params.set('hide','1');
+  
+  const popupEventCardIdEl = document.getElementById("popupCardEventId");
+  if (popupEventCardIdEl.textContent) {
+    params.set('eventId', popupEventCardIdEl.textContent);
+  }
 
   const newUrl = window.location.pathname + '?' + params.toString();
   history.replaceState(null, '', newUrl);
@@ -221,13 +382,18 @@ async function saveSurveyResults(url, json) {
 }
 
 (async () => {
-  const [config, events, about, createEventSurveyJS] = await Promise.all([
+  const [config, events, createEventSurveyJS] = await Promise.all([
     fetch('/config.json?v=4').then((r) => r.json()),
     fetch('/data/events.json?v=4').then((r) => r.json()),
-    fetch('/partials/about-tab.html?v=4').then((r) => r.text()),
+    //fetch('/partials/about-tab.html?v=4').then((r) => r.text()),
     fetch('/data/createEventSurveyJS.json?v=4').then((r) => r.json()),
   ]);
-  document.getElementById('aboutTab').outerHTML = about;
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+  window.config = config;
+  
+  //document.getElementById('aboutTab').outerHTML = about;
   document.title = config.siteTitle;
 
   // Create the survey
@@ -303,14 +469,41 @@ async function saveSurveyResults(url, json) {
     config.mobilizonUrl.replace(/^https?:\/\//, '')
   );
   insertText('site-name-text', config.siteTitle);
-  insertText('topBanner', config.topBannerText, '#');
+  insertText('topBannerText', config.topBannerText, '#');
   if (config.splashText !== null) {
     insertText('splashText', config.splashText, '#');
+  }
+  if (config.blogLink) {
+    insertLink('blog-link', config.blogLink, 'here');
+  }
+  if (config.mastodonLink){
+    insertLink('mastodon-link', config.mastodonLink, 'here');
   }
 
   document.getElementById('startDate').value = new Date()
     .toISOString()
     .split('T')[0];
+    
+  // Filter collapse
+  const filterToggleBtn = document.getElementById('toggleFilters');
+  // Default section
+  const filters = document.getElementById('filtersContainer');
+  //filters.classList.remove('open'); // Always collapse on load
+
+  filterToggleBtn.addEventListener('click', () => {
+    const isOpen = filters.classList.toggle('open');
+    filterToggleBtn.textContent = isOpen ? 'Hide Filters ▲' : 'Show Filters ▼';
+  });
+  
+  // Open sidebar
+  document.getElementById("hamburgerButton").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.add("open");
+  });
+
+  
+  document.querySelectorAll('.mainSection').forEach(el => el.classList.remove('active'));
+  switchSection('viewEvents');
+
 
   // Initialize global variables for map and calendar instances
   let map = null;
@@ -364,6 +557,7 @@ async function saveSurveyResults(url, json) {
   }
 
   // About panel sidebar switching
+  /*
   document.querySelectorAll('.about-link').forEach((btn) => {
     btn.addEventListener('click', () => {
       document
@@ -376,6 +570,7 @@ async function saveSurveyResults(url, json) {
       document.getElementById(btn.dataset.panel).style.display = 'block';
     });
   });
+  */
 
   function renderEventCards(events, sortOrder = 'asc') {
     const container = document.getElementById('eventCards');
@@ -388,7 +583,6 @@ async function saveSurveyResults(url, json) {
     });
 
     sortedEvents.forEach((event) => {
-      console.log(event);
       const card = document.createElement('div');
       const titleEl = document.createElement('h3');
       titleEl.textContent = event.title;
@@ -445,7 +639,8 @@ async function saveSurveyResults(url, json) {
         address:     event.address,
         linkText:    event,           // we’ll let getRedirectHTML pick url fields
         description: event.description,
-        category:    event.category
+        category:    event.category,
+        eventId:     event.url
       };
 
       // fire the popup
@@ -476,14 +671,17 @@ async function saveSurveyResults(url, json) {
         url: event.url
       },
     }));
+
     const calendarEl = document.getElementById('calendar');
     let initialDateStr = new Date().toISOString().split('T')[0];
+    let viewType = "dayGridMonth";
     if (calendarInitialized) {
+      viewType = calendar.view.type;
       initialDateStr = calendar.getDate().toISOString().split('T')[0];
       calendar.destroy();
     }
     calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
+      initialView: viewType,
       initialDate: initialDateStr,
       headerToolbar: {
         left: 'prev,next today',
@@ -522,7 +720,8 @@ async function saveSurveyResults(url, json) {
             url:                      evt.extendedProps.url
           },
           description: evt.extendedProps.description || '',
-          category:    evt.extendedProps.category || ''
+          category:    evt.extendedProps.category || '',
+          eventId:     evt.extendedProps.url
         };
 
         // Create inner HTML
@@ -636,6 +835,7 @@ async function saveSurveyResults(url, json) {
         .addEventListener('click', renderOnce);
     }
 
+
     // Map and marker clusters
     if (!map) {
       map = L.map('map').setView([43.6, -72.97], 8);
@@ -666,7 +866,8 @@ async function saveSurveyResults(url, json) {
             address:     event.address,
             linkText:    event,       // again: getRedirectHTML(event) will pick urls
             description: event.description,
-            category:    event.category
+            category:    event.category,
+            eventId:     event.url
           };
 
           marker.bindPopup(
@@ -837,10 +1038,11 @@ async function saveSurveyResults(url, json) {
 
   // 1) parse URL
   const urlFilters = parseFiltersFromUrl();
+  const initialEventPopupId = urlFilters.eventId;
 
   // 2) set inputs
   textSearch.value = urlFilters.text;
-  startDate.value  = urlFilters.start;
+  startDate.value = urlFilters.start || new Date().toISOString().split('T')[0];
   endDate.value    = urlFilters.end;
   hideWithLocation.checked = urlFilters.hideLoc;
 
@@ -855,8 +1057,17 @@ async function saveSurveyResults(url, json) {
                  ? (opt.value === '')
                  : urlFilters.cats.includes(opt.value);
   });
+  
+  if (
+    urlFilters.text ||
+    urlFilters.end ||
+    (urlFilters.towns && urlFilters.towns.length > 0) ||
+    (urlFilters.cats && urlFilters.cats.length > 0)
+  ) {
+    filterToggleBtn.click();
+  }
 
-  function filterEvents() {
+  function filterEvents(applyFilterButtonPress=false) {
     const text = textSearch.value.toLowerCase();
     const start = new Date(startDate.value);
     const end = new Date(endDate.value);
@@ -938,6 +1149,26 @@ async function saveSurveyResults(url, json) {
     // after filters & rendering…
     updateUrlParams();  
 
+    setTimeout(() => {
+      const activeTab = getActiveTab();
+      console.log(calendar);
+      if (activeTab === "calendarTab" && calendar && calendar.view.type === 'dayGridMonth') {
+        const firstEventEl = document.querySelector('.fc-event');
+        const scrollerEl = document.querySelector('.fc-scroller');
+        if (firstEventEl && scrollerEl) {
+          const priorWindowScrollY = window.scrollY;
+          firstEventEl.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start', // or 'center'
+            alignToTop: false,
+            container: 'nearest'
+          });
+          if (!applyFilterButtonPress) {
+            window.scrollTo({ top: priorWindowScrollY });
+          }
+        }
+      }
+    }, 100);
   }
 
 
@@ -946,7 +1177,7 @@ async function saveSurveyResults(url, json) {
   // Listen to submit filter button
   document.getElementById('applyFilters').addEventListener('click', (e) => {
     e.preventDefault();
-    filterEvents();
+    filterEvents(true);
   });
 
   // Attach filter listeners
@@ -962,6 +1193,22 @@ async function saveSurveyResults(url, json) {
 
   // Initial render with default sort (upcoming first)
   filterEvents();
+  console.log(initialEventPopupId);
+  if (initialEventPopupId) {
+    const initialPopup = events.find(evt => evt.url === initialEventPopupId);
+    const details = {
+        title:       initialPopup.title,
+        beginsOn:    initialPopup.beginsOn,
+        endsOn:      initialPopup.endsOn,
+        address:     initialPopup.address,
+        linkText:    initialPopup,           // we’ll let getRedirectHTML pick url fields
+        description: initialPopup.description,
+        category:    initialPopup.category,
+        eventId:     initialPopup.url
+      };
+    openPopupEvent(details);
+  }
+
 
   // Remove loader
   const loader = document.getElementById('loader');
