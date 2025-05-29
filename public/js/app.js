@@ -31,6 +31,14 @@ function switchSection(sectionId) {
   const section = document.getElementById(sectionId);
   section.classList.add('active');
   
+  const params = new URLSearchParams(window.location.search);
+  
+  params.set('sidePanelSection', sectionId);
+  
+  const newUrl = window.location.pathname + '?' + params.toString();
+  //console.log(newUrl);
+  history.replaceState(null, '', newUrl);
+  
   if (sectionId === "commentSection") {
     const commentDiv = document.getElementById('publicComments');
     const commentEl = document.createElement('section')
@@ -250,7 +258,12 @@ function parseFiltersFromUrl() {
 
 // Write current filter values back into the URL (no reload)
 function updateUrlParams() {
-  const params = new URLSearchParams();
+  const params = new URLSearchParams(window.location.search);
+  const filterKeys = ['text', 'start', 'end', 'towns', 'cats', 'hideLoc', 'eventId'];
+  for (const k in filterKeys) {
+    params.delete(k); 
+  }
+  console.log(params);
 
   if (textSearch.value)   params.set('text',  textSearch.value);
   if (startDate.value)    params.set('start', startDate.value);
@@ -276,6 +289,7 @@ function updateUrlParams() {
   }
 
   const newUrl = window.location.pathname + '?' + params.toString();
+
   history.replaceState(null, '', newUrl);
 }
 
@@ -502,7 +516,10 @@ async function saveSurveyResults(url, json) {
 
   
   document.querySelectorAll('.mainSection').forEach(el => el.classList.remove('active'));
-  switchSection('viewEvents');
+    
+  const params = new URLSearchParams(window.location.search);
+  const initialSection = params.get('sidePanelSection') || 'viewEvents';
+  switchSection(initialSection);
 
 
   // Initialize global variables for map and calendar instances
