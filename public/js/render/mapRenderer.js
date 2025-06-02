@@ -78,4 +78,14 @@ export function renderMap(events) {
 
   // Finally, add the entire cluster group to the map
   map.addLayer(markers);
+  
+   // Show count of events without location data
+  const noLocCount = events.filter((e) => !e.address.geom).length;
+  const mapIndicators = document.getElementById('mapIndicators');
+  if (noLocCount > 0) {
+    mapIndicators.innerHTML = `${noLocCount} event(s) without location data<br>
+          <small>See these in Event Cards tab by selecting Hide events with location data</small>`;
+  } else {
+    mapIndicators.textContent = '';
+  }
 }
