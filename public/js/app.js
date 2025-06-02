@@ -1,504 +1,35 @@
-function detectMobile() {
-  // 1) Try the modern hint
-  if (navigator.userAgentData?.mobile !== undefined) {
-    return navigator.userAgentData.mobile;
-  }
+// /js/app.js
+console.log("Started");
+import { detectMobile }          from './utils/detectMobile.js';
+import { openSidebar, closeSidebar, switchSection } from './ui/sidebar.js';
+import { initTabButtons }        from './ui/tabs.js';
+import { loadBlog }               from './feeds/blogLoader.js';
+import { openPopupEvent }        from './ui/popup.js';
 
-  // 2) Fall back to pointer check
-  if (window.matchMedia('(pointer: coarse)').matches) {
-    return true;
-  }
+import { renderEventCards, renderCalendar, renderMap } from './render/index.js';
+import { parseFiltersFromUrl, filterEvents, updateUrlParams } from './render/filters.js';
+import { defaultFillPlaceholders } from './render/fillPlaceholders.js';
 
-  // 3) Finally, fall back to UA regex
-  return /Android|iPhone|iPad|iPod|Opera Mini/i.test(navigator.userAgent);
-}
-
-
-// Close sidebar
-function closeSidebar() {
-  document.getElementById("sidebar").classList.remove("open");
-}
-
-// Switch entire sections
-function switchSection(sectionId) {
-  closeSidebar();
-  // Hide all sections with fade out
-  document.querySelectorAll('.mainSection').forEach(el => {
-    el.classList.remove('active');
-  });
-
-  // Show the selected section with fade in
-  const section = document.getElementById(sectionId);
-  section.classList.add('active');
-  
-  const params = new URLSearchParams(window.location.search);
-  
-  params.set('sidePanelSection', sectionId);
-  
-  const newUrl = window.location.pathname + '?' + params.toString();
-  //console.log(newUrl);
-  history.replaceState(null, '', newUrl);
-  
-  if (sectionId === "commentSection") {
-    const commentDiv = document.getElementById('publicComments');
-    const commentEl = document.createElement('section')
-    commentEl.id = 'isso-thread'
-    commentEl.setAttribute('data-isso-id', '/public-comments');
-
-    commentDiv.append(commentEl);
-    
-    Isso.init()
-    Isso.fetchComments();
-    Array.from(document.getElementsByClassName("sidebar-nav")).forEach(el => {
-      // There can only be one present isso thread or weirdness happens.
-      // Remove on new sidebar nav.
-      el.addEventListener('click', e => {
-        commentDiv.innerHTML = '';
-      });
-    });
-  } else if (sectionId === "blogSection" && !blogLoaded) {
-    loadRSS();
-  }
-}
-
-function cleanContent(content) {
-  return content
-    // Remove <p> tags inside <li> elements, keeping inner text/HTML
-    .replace(/<li[^>]*>\s*<p[^>]*>([\s\S]*?)<\/p>\s*<\/li>/gi, '<li>$1</li>')
-    // (Optional) Clean <p> wrapping entire <ul>/<ol> (if present)
-    .replace(/<p[^>]*>\s*(<(ul|ol)[^>]*>[\s\S]*?<\/\2>)\s*<\/p>/gi, '$1')
-    .trim();
-}
-
-
-let blogLoaded = false;
-function loadRSS() {
-  const feedUrl = window.config.blogFeedURL;
-  
-  const feedContainer = document.getElementById("rssFeed");
-
-  if (!feedUrl) {
-    feedContainer.innerHTML = "There was an error or this website does not have associated blog yet.";
-    return;
-  }
-
-  fetch(feedUrl)
-    .then(response => response.text())
-    .then(str => {
-      const parser = new window.DOMParser();
-      const xmlDoc = parser.parseFromString(str, "text/xml");
-      const isAtom = xmlDoc.documentElement.nodeName.toLowerCase() === "feed";
-      let html = "";
-
-      if (!isAtom) {
-        const channelImage = xmlDoc.querySelector("channel > image > url")?.textContent;
-        if (channelImage) {
-          html += `<div style="text-align:center;">
-            <img src="${channelImage}" alt="Blog Avatar" style="border-radius:50%; max-width:120px; height:auto;">
-          </div>`;
-        }
-      }
-
-      const entries = isAtom ? xmlDoc.querySelectorAll("entry") : xmlDoc.querySelectorAll("item");
-      entries.forEach((entry, index) => {
-        if (index < 5) {
-          let title, link, pubDate, author, contentHTML, postImageTag = "";
-
-          if (isAtom) {
-            title = entry.querySelector("title")?.textContent || "Untitled";
-            link = entry.querySelector("link[rel='alternate']")?.getAttribute("href");
-            pubDate = entry.querySelector("published")?.textContent || "";
-            author = entry.querySelector("author > name")?.textContent || "Unknown";
-            contentHTML = entry.querySelector("content")?.textContent || "";
-          } else {
-            title = entry.querySelector("title")?.textContent || "Untitled";
-            link = entry.querySelector("link")?.textContent;
-            pubDate = entry.querySelector("pubDate")?.textContent || "";
-            author = entry.querySelector("author")?.textContent || "Unknown";
-            const description = entry.querySelector("description")?.textContent || "";
-            const contentEncoded = entry.querySelector("content\\:encoded")?.textContent || "";
-            contentHTML = contentEncoded || description;
-
-            const enclosureUrl = entry.querySelector("enclosure")?.getAttribute("url");
-            const imgRegex = /<img.*?src=["'](.*?)["']/i;
-            const imgMatch = contentEncoded.match(imgRegex);
-            const inlineImage = imgMatch ? imgMatch[1] : null;
-            const postImage = enclosureUrl || inlineImage;
-            if (postImage) {
-              postImageTag = `<div style="margin:0.5em 0;"><img src="${postImage}" alt="${title}" style="max-width:100%; height:auto;"></div>`;
-            }
-          }
-
-          // Optional: limit content length
-          //if (contentHTML.length > 5000) {
-          //  contentHTML = contentHTML.slice(0, 5000) + "...";
-          //}
-          
-          const cleanedContent = cleanContent(contentHTML);
-
-          // Instead of using <li>, use a container div for each entry
-          html += `
-            <div style="margin-bottom:2em; padding:1em; border:1px solid #ccc; border-radius:8px;" class="post-content">
-              <a href="${link}" target="_blank" rel="noopener" style="font-size:1.4em; font-weight:bold; text-decoration:none; color:#007acc;">${title}</a><br>
-              <small>${new Date(pubDate).toLocaleDateString()}${author ? ` by ${author}` : ""}</small>
-              ${postImageTag}
-              <div>${cleanedContent}</div>
-            </div>`;
-        }
-      });
-
-      feedContainer.innerHTML = html;
-      blogLoaded = true;
-    })
-    .catch(err => {
-      console.error("Failed to load feed:", err);
-      feedContainer.innerHTML = "<p>Unable to load posts. Please check back later.</p>";
-    });
-}
-
-function openPopupEvent({
-  title,
-  beginsOn,
-  endsOn = null,
-  address = {},
-  linkText,        // you can pass whatever you want here; openPopupEvent just renders it via getRedirectHTML()
-  description = '',
-  category = '',
-  eventId = null
-}) {
-  const popupCardEventId = document.getElementById("popupCardEventId");
-  if (eventId) {
-    popupCardEventId.textContent = eventId;
-  }
-  const popupOverlay = document.getElementById('popupOverlay');
-  const popupCard    = document.getElementById('popupCardContent');
-
-  // clear out any previous content
-  popupCard.innerHTML = '';
-
-  // build the card
-  const card = document.createElement('div');
-  card.className = 'popup-event-card';
-
-  const titleEl = document.createElement('h3');
-  titleEl.textContent = title;
-
-  const dateEl = document.createElement('p');
-  dateEl.innerHTML = `<strong>Date:</strong> ${new Date(beginsOn).toLocaleString()}`
-                   + (endsOn ? ` – ${new Date(endsOn).toLocaleString()}` : '');
-
-  const locEl = document.createElement('p');
-  locEl.innerHTML = `<strong>Location:</strong> ${address.locality || 'Unknown'}`;
-
-  const srcEl = document.createElement('p');
-  srcEl.innerHTML = `<strong>More details at:</strong> ${getRedirectHTML(linkText)}`;
-
-  card.append(titleEl, dateEl, locEl, srcEl);
-
-  if (description) {
-    const descEl = document.createElement('p');
-    descEl.classList.add('popup-card-description');
-    descEl.innerHTML = `<strong>Description:</strong> ${description}`;
-    card.append(descEl);
-  }
-    
-  const commentEl = document.createElement('section')
-  commentEl.id = 'isso-thread'
-  commentEl.setAttribute('data-isso-id', '/event_comments/' + linkText.url);
-
-  popupCard.append(card, commentEl);
-
-  // show the overlay
-  popupOverlay.classList.add('active');
-  
-  Isso.init()
-  Isso.fetchComments();
-
-  // one-time close listener
-  const close = () => {
-    popupOverlay.classList.remove('active');
-    popupOverlay.removeEventListener('click', close);
-    document.getElementById('closePopup').removeEventListener('click', close);
-    
-    popupCard.innerHTML = '';
-    popupCardEventId.textContent = null;
-    updateUrlParams();
-  };
-  document.getElementById('closePopup').addEventListener('click', close);
-  popupOverlay.addEventListener('click', e => {
-    if (e.target === popupOverlay) close();
-  });
-  Array.from(document.getElementsByClassName("sidebar-nav")).forEach(el => {
-    el.addEventListener('click', e => {
-      // There can only be one present isso thread or weirdness happens.
-      // Remove on new sidebar nav.
-      popupCard.innerHTML = '';
-      popupCardEventId.textContent = null;
-      updateUrlParams();
-    });
-  });
-  
-  updateUrlParams();
-}
-
-
-// Read ?… from window.location.search into an object
-function parseFiltersFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  return {
-    text:    params.get('text')    || '',
-    start:   params.get('start')   || '',
-    end:     params.get('end')     || '',
-    towns:   params.getAll('town'),      // can be multiple
-    cats:    params.getAll('cat'),       // can be multiple
-    hideLoc: params.get('hide') === '1',
-    eventId: params.get('eventId') || ''
-  };
-}
-
-// Write current filter values back into the URL (no reload)
-function updateUrlParams() {
-  const params = new URLSearchParams(window.location.search);
-  const filterKeys = ['text', 'start', 'end', 'towns', 'cats', 'hideLoc', 'eventId'];
-  for (const k in filterKeys) {
-    params.delete(k); 
-  }
-  console.log(params);
-
-  if (textSearch.value)   params.set('text',  textSearch.value);
-  if (startDate.value)    params.set('start', startDate.value);
-  if (endDate.value)      params.set('end',   endDate.value);
-
-  // multiple towns
-  Array.from(townFilter.selectedOptions)
-       .map(o => o.value)
-       .filter(v => v)
-       .forEach(v => params.append('town', v));
-
-  // multiple categories
-  Array.from(categoryFilter.selectedOptions)
-       .map(o => o.value)
-       .filter(v => v)
-       .forEach(v => params.append('cat', v));
-
-  if (hideWithLocation.checked) params.set('hide','1');
-  
-  const popupEventCardIdEl = document.getElementById("popupCardEventId");
-  if (popupEventCardIdEl.textContent) {
-    params.set('eventId', popupEventCardIdEl.textContent);
-  }
-
-  const newUrl = window.location.pathname + '?' + params.toString();
-
-  history.replaceState(null, '', newUrl);
-}
-
-
-function getRedirectHTML(rawEvent, truncate = null) {
-  const { externalParticipationUrl, onlineAddress, url } = rawEvent;
-
-  const links = [];
-
-  if (isValidUrl(externalParticipationUrl)) {
-    links.push(createLink(externalParticipationUrl, truncate));
-  }
-
-  if (isValidUrl(onlineAddress)) {
-    if (
-      !isValidUrl(externalParticipationUrl) ||
-      getDomain(onlineAddress) != getDomain(externalParticipationUrl)
-    ) {
-      links.push(createLink(onlineAddress, truncate));
-    }
-  }
-
-  if (links.length === 0 && url) {
-    // Assume `url` is always valid
-    links.push(createLink(url, truncate));
-  }
-
-  return links.join(', ');
-}
-
-function createLink(linkUrl, truncate) {
-  const domain = getDomain(linkUrl);
-  const label =
-    truncate && domain.length > truncate
-      ? domain.slice(0, truncate) + '...'
-      : domain;
-
-  return `<a href="${linkUrl}" target="_blank">${label}</a>`;
-}
-
-function getDomain(url) {
-  try {
-    const hostname = new URL(url).hostname;
-    return hostname.startsWith('www.') ? hostname.slice(4) : hostname;
-  } catch (e) {
-    return 'Invalid URL';
-  }
-}
-
-function isValidUrl(value) {
-  if (typeof value !== 'string' || value.trim() === '') return false;
-  try {
-    new URL(value);
-    return true;
-  } catch (_) {
-    return false;
-  }
-}
-function surveyComplete(survey) {
-  const warningEl = document.getElementById('createEventWarning');
-
-  // Show loading spinner
-  warningEl.innerHTML = `
-    <span style="display: inline-block; width: 1em; height: 1em; border: 2px solid #ccc; border-top: 2px solid #333; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 0.5em;"></span>
-    Submitting your event...`;
-  saveSurveyResults('/create-event', survey.data);
-}
-
-async function saveSurveyResults(url, json) {
-  const warningEl = document.getElementById('createEventWarning');
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json;charset=UTF-8',
-      },
-      body: JSON.stringify(json),
-    });
-
-    if (response.ok) {
-      warningEl.textContent = 'Your event has successfully been submitted.';
-    } else {
-      warningEl.textContent = 'There was an error submitting your event.';
-
-      // Attempt to decode the body
-      try {
-        const clone = response.clone(); // clone before reading in case .json() fails
-        const json = await clone.json();
-        console.error('Server responded with error JSON:', json);
-      } catch (jsonErr) {
-        try {
-          const text = await response.text();
-          console.error('Server responded with plain text:', text);
-        } catch (textErr) {
-          console.error('Could not read error response body at all', textErr);
-        }
-      }
-    }
-  } catch (networkErr) {
-    warningEl.textContent = 'There was a network error submitting your event.';
-    console.error('Network or fetch error:', networkErr);
-  }
-}
-
+let events = [];
 (async () => {
-  const [config, events, createEventSurveyJS] = await Promise.all([
-    fetch('/config.json?v=4').then((r) => r.json()),
-    fetch('/data/events.json?v=4').then((r) => r.json()),
-    //fetch('/partials/about-tab.html?v=4').then((r) => r.text()),
-    fetch('/data/createEventSurveyJS.json?v=4').then((r) => r.json()),
+  const [config, rawEvents, surveySchema] = await Promise.all([
+    fetch('/config.json?v=4').then(r => r.json()),
+    fetch('/data/events.json?v=4').then(r => r.json()),
+    fetch('/data/createEventSurveyJS.json?v=4').then(r => r.json())
   ]);
-  if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual';
-  }
   window.config = config;
-  
-  //document.getElementById('aboutTab').outerHTML = about;
   document.title = config.siteTitle;
 
-  // Create the survey
-  const createEventTabEl = document.getElementById('createEventTab');
-  const survey = new Survey.Model(createEventSurveyJS);
-  survey.onComplete.add(surveyComplete);
-  // Customize the thank-you message and add a button to restart
-  survey.completedHtml = `
-    <h3>Thank you for submitting your event!</h3>
-    <p>We'll review it and get back to you soon.</p>
-    <button id="restartSurveyBtn" style="margin-top:1em;">Submit Another Event</button>
-  `;
-  // Watch for begins_on value changes
-  survey.onValueChanged.add(function (sender, options) {
-    if (options.name === "begins_on") {
-      const beginsOnValue = options.value;
+  document.getElementById('loader').style.display = 'none';
+  
+  defaultFillPlaceholders();
 
-      const endsOnQuestion = sender.getQuestionByName("ends_on");
-      if (endsOnQuestion && beginsOnValue) {
-        // Set the minimum selectable date for ends_on
-        endsOnQuestion.min = beginsOnValue;
-        
-        if (!endsOnQuestion.value || (new Date(endsOnQuestion.value) < new Date(beginsOnValue))) {
-          endsOnQuestion.value = beginsOnValue;
-        }
-      }
-    }
-  });
-
-
-  survey.render(createEventTabEl);
-
-  // Attach handler after survey completes
-  survey.onComplete.add(function () {
-    setTimeout(() => {
-      const restartBtn = document.getElementById('restartSurveyBtn');
-      if (restartBtn) {
-        restartBtn.onclick = () => {
-          survey.clear(); // Clear responses
-          survey.currentPageNo = 0; // Go back to first page
-          survey.render('createEventTab'); // Re-render
-
-          const warningEl = document.getElementById('createEventWarning');
-          warningEl.textContent = '';
-        };
-      }
-    }, 0); // Wait for DOM to update
-  });
-
-  function insertText(className, text, prefix = '.') {
-    document.querySelectorAll(prefix + className).forEach((el) => {
-      el.textContent = text;
-    });
-  }
-
-  function insertLink(className, link, text) {
-    document.querySelectorAll('.' + className).forEach((el) => {
-      const l = document.createElement('a');
-      l.href = link;
-      l.textContent = text;
-      l.target = '_blank';
-      l.rel = 'noopener noreferrer';
-      el.innerHTML = '';
-      el.appendChild(l);
-    });
-  }
-
-  function insertMail(className, email, text) {}
-
-  insertLink(
-    'mobilizon-url',
-    config.mobilizonUrl,
-    config.mobilizonUrl.replace(/^https?:\/\//, '')
-  );
-  insertText('site-name-text', config.siteTitle);
-  insertText('topBannerText', config.topBannerText, '#');
-  if (config.splashText !== null) {
-    insertText('splashText', config.splashText, '#');
-  }
-  if (config.blogLink) {
-    insertLink('blog-link', config.blogLink, 'here');
-  }
-  if (config.mastodonLink){
-    insertLink('mastodon-link', config.mastodonLink, 'here');
-  }
-
-  document.getElementById('startDate').value = new Date()
-    .toISOString()
-    .split('T')[0];
-    
-  // Filter collapse
+  document.getElementById('hamburgerButton').addEventListener('click', openSidebar);
+  document.getElementById('navViewEvents').addEventListener('click', () => switchSection('viewEvents'));
+  document.getElementById('navAboutSection').addEventListener('click', () => switchSection('aboutSection'));
+  document.getElementById('navBlogSection').addEventListener('click', () => switchSection('blogSection'));
+  document.getElementById('navCommentSection').addEventListener('click', () => switchSection('commentSection'));
+// Filter collapse
   const filterToggleBtn = document.getElementById('toggleFilters');
   // Default section
   const filters = document.getElementById('filtersContainer');
@@ -509,725 +40,110 @@ async function saveSurveyResults(url, json) {
     filterToggleBtn.textContent = isOpen ? 'Hide Filters ▲' : 'Show Filters ▼';
   });
   
-  // Open sidebar
-  document.getElementById("hamburgerButton").addEventListener("click", function() {
-    document.getElementById("sidebar").classList.add("open");
-  });
 
-  
-  document.querySelectorAll('.mainSection').forEach(el => el.classList.remove('active'));
-    
-  const params = new URLSearchParams(window.location.search);
-  const initialSection = params.get('sidePanelSection') || 'viewEvents';
-  switchSection(initialSection);
+  initTabButtons();
 
-
-  // Initialize global variables for map and calendar instances
-  let map = null;
-  let markerCluster = null;
-  let calendar = null;
-  let calendarInitialized = false;
-
-  // Tab switching logic
-  document.querySelectorAll('.tabButton').forEach((button) => {
-    button.addEventListener('click', () => {
-      document.querySelectorAll('.tabContent').forEach((tab) => {
-        tab.style.display = 'none';
-      });
-      document.querySelectorAll('.tabButton').forEach((btn) => {
-        btn.classList.remove('active');
-      });
-      const targetId = button.getAttribute('data-tab');
-      document.getElementById(targetId).style.display = 'block';
-      button.classList.add('active');
-      if (targetId === 'calendarTab' && calendar) {
-        setTimeout(() => {
-          calendar.updateSize();
-          window.dispatchEvent(new Event('resize'));
-        }, 100);
+  const createEventTabEl = document.getElementById('createEventTab');
+  const survey = new Survey.Model(surveySchema);
+  survey.onComplete.add(sender => {
+    const warningEl = document.getElementById('createEventWarning');
+    warningEl.innerHTML = `
+      <span style="display:inline-block; width:1em; height:1em; border:2px solid #ccc; border-top:2px solid #333; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:0.5em;"></span>
+      Submitting your event…`;
+    fetch('/create-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+      body: JSON.stringify(sender.data)
+    })
+    .then(res => {
+      if (res.ok) {
+        warningEl.textContent = 'Your event has successfully been submitted.';
+      } else {
+        warningEl.textContent = 'There was an error submitting your event.';
       }
-      if (targetId === 'mapTab' && map) {
-        setTimeout(() => map.invalidateSize(), 0);
-      }
+    })
+    .catch(err => {
+      warningEl.textContent = 'There was a network error submitting your event.';
+      console.error(err);
     });
   });
-
-  // Get currently active tab
-  function getActiveTab() {
-    const buttons = document.querySelectorAll('.tabButton');
-    for (const button of buttons) {
-      if (button.classList.contains('active')) {
-        return button.getAttribute('data-tab');
+  survey.completedHtml = `
+    <h3>Thank you for submitting your event!</h3>
+    <p>We’ll review it and get back to you soon.</p>
+    <button id="restartSurveyBtn">Submit Another Event</button>`;
+  survey.onValueChanged.add((sender, options) => {
+    if (options.name === "begins_on") {
+      const endsOnQ = sender.getQuestionByName("ends_on");
+      if (endsOnQ && options.value) {
+        endsOnQ.min = options.value;
+        if (!endsOnQ.value || new Date(endsOnQ.value) < new Date(options.value)) {
+          endsOnQ.value = options.value;
+        }
       }
     }
-    console.error(
-      'No active tab found. This should not happen with expected functioning.'
-    );
-    return null;
-  }
+  });
+  survey.render(createEventTabEl);
+  survey.onComplete.add(() => {
+    setTimeout(() => {
+      const restartBtn = document.getElementById('restartSurveyBtn');
+      if (restartBtn) {
+        restartBtn.onclick = () => {
+          survey.clear();
+          survey.currentPageNo = 0;
+          survey.render(createEventTabEl);
+          document.getElementById('createEventWarning').textContent = '';
+        };
+      }
+    }, 0);
+  });
 
-  // Show calendar tab by default
+  events = rawEvents;
+  renderEventCards(events);
+  renderCalendar(events);
+  renderMap(events);
+
+  const urlFilters = parseFiltersFromUrl();
+  document.getElementById('textSearch').value = urlFilters.text;
+  document.getElementById('startDate').value = urlFilters.start || new Date().toISOString().slice(0,10);
+  document.getElementById('endDate').value = urlFilters.end;
+  document.getElementById('hideWithLocation').checked = urlFilters.hideLoc;
+  Array.from(document.getElementById('townFilter').options).forEach(opt => {
+    opt.selected = urlFilters.towns.length === 0
+                 ? (opt.value === '')
+                 : urlFilters.towns.includes(opt.value);
+  });
+  Array.from(document.getElementById('categoryFilter').options).forEach(opt => {
+    opt.selected = urlFilters.cats.length === 0
+                 ? (opt.value === '')
+                 : urlFilters.cats.includes(opt.value);
+  });
+  if (urlFilters.text || urlFilters.end || urlFilters.towns.length || urlFilters.cats.length) {
+    document.getElementById('toggleFilters').click();
+  }
+  
+  window.rerenderEvents = () => {
+    const filtered = filterEvents(events);
+    renderEventCards(filtered);
+    renderCalendar(filtered);
+    renderMap(filtered);
+    updateUrlParams();
+  };
+
+  document.getElementById('applyFilters').addEventListener('click', e => {
+    e.preventDefault();
+    window.rerenderEvents();
+  });
+  document
+    .getElementById('hideWithLocation')
+    .addEventListener('input', window.rerenderEvents());
+
   if (detectMobile()) {
     document.querySelector('[data-tab="cardsTab"]').click();
   } else {
     document.querySelector('[data-tab="calendarTab"]').click();
   }
 
-  // About panel sidebar switching
-  /*
-  document.querySelectorAll('.about-link').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document
-        .querySelectorAll('.about-link')
-        .forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      document
-        .querySelectorAll('.about-panel')
-        .forEach((p) => (p.style.display = 'none'));
-      document.getElementById(btn.dataset.panel).style.display = 'block';
-    });
-  });
-  */
-
-  function renderEventCards(events, sortOrder = 'asc') {
-    const container = document.getElementById('eventCards');
-    container.innerHTML = events.length ? '' : '<p>No events found.</p>';
-
-    const sortedEvents = [...events].sort((a, b) => {
-      const timeA = new Date(a.beginsOn).getTime();
-      const timeB = new Date(b.beginsOn).getTime();
-      return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
-    });
-
-    sortedEvents.forEach((event) => {
-      const card = document.createElement('div');
-      const titleEl = document.createElement('h3');
-      titleEl.textContent = event.title;
-      const dateEl = document.createElement('p');
-      dateEl.innerHTML = `<strong>Date:</strong> ${new Date(
-        event.beginsOn
-      ).toLocaleString()}`;
-
-      const locEl = document.createElement('p');
-      locEl.innerHTML = `<strong>Location:</strong> ${
-        event.address?.locality || 'Unknown'
-      }`;
-
-      const srcEl = document.createElement('p');
-      srcEl.innerHTML = `<strong>More details at:</strong> ${getRedirectHTML(
-        event
-      )}`;
-
-      card.append(titleEl, dateEl, locEl, srcEl);
-
-      if (
-        event.description &&
-        !event.description.startsWith('No description')
-      ) {
-        const descEl = document.createElement('p');
-        descEl.classList.add('card-description');
-        descEl.innerHTML = `<strong>Description:</strong> ${event.description}`;
-
-        const expandBtn = document.createElement('span');
-        expandBtn.classList.add('expand-btn');
-        expandBtn.textContent = '+';
-        expandBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const isExpanded = descEl.classList.toggle('expanded');
-          expandBtn.textContent = isExpanded ? '−' : '+';
-        });
-
-        const wrapper = document.createElement('div');
-        wrapper.style.position = 'relative';
-        wrapper.append(descEl, expandBtn);
-        card.append(wrapper);
-      }
-      /*
-      card.addEventListener('click', () => {
-        const link = getRedirectHTML(event);
-        if (link) window.open(link, '_blank');
-      });
-      */
-      //
-      const details = {
-        title:       event.title,
-        beginsOn:    event.beginsOn,
-        endsOn:      event.endsOn,
-        address:     event.address,
-        linkText:    event,           // we’ll let getRedirectHTML pick url fields
-        description: event.description,
-        category:    event.category,
-        eventId:     event.url
-      };
-
-      // fire the popup
-      card.addEventListener('click', () => openPopupEvent(details));
-
-
-      container.appendChild(card);
-    });
-  }
-
-  // Render events as cards, calendar entries, and map markers
-  function renderEvents(events) {
-    renderEventCards(events);
-
-    // Calendar setup
-    const calEvents = events.map((event) => ({
-      id: event.id,
-      title: event.title,
-      start: event.beginsOn,
-      end: event.endsOn !== null ? event.endsOn : undefined,
-      extendedProps: {
-        username: event.username,
-        address: event.address,
-        linkText: getRedirectHTML(event, 12),
-        description: event.description,
-        externalParticipationUrl: event.externalParticipationUrl,
-        onlineAddress: event.onlineAddress,
-        url: event.url
-      },
-    }));
-
-    const calendarEl = document.getElementById('calendar');
-    let initialDateStr = new Date().toISOString().split('T')[0];
-    let viewType = "dayGridMonth";
-    if (calendarInitialized) {
-      viewType = calendar.view.type;
-      initialDateStr = calendar.getDate().toISOString().split('T')[0];
-      calendar.destroy();
-    }
-    calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: viewType,
-      initialDate: initialDateStr,
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay',
-      },
-      events: calEvents,
-      eventClick: function (info) {
-        info.jsEvent.preventDefault();
-        // Remove any old popover
-        document.getElementById('fcPopover')?.remove();
-
-        // Build popover
-        const pop = document.createElement('div');
-        pop.id = 'fcPopover';
-        pop.className = 'fc-popover';
-
-        // Extract event details
-        const startTime = new Date(info.event.start).toLocaleString();
-        const endTime = info.event.end
-          ? ` – ${new Date(info.event.end).toLocaleString()}`
-          : '';
-        const addr = info.event.extendedProps.address.description ||
-          (info.event.extendedProps.address.street || '') + ', ' +
-          (info.event.extendedProps.address.locality || '');
-
-        const evt = info.event;
-        const details = {
-          title:       evt.title,
-          beginsOn:    evt.start,
-          endsOn:      evt.end,
-          address:     evt.extendedProps.address,
-          linkText:    {
-            externalParticipationUrl: evt.extendedProps.externalParticipationUrl,
-            onlineAddress:            evt.extendedProps.onlineAddress,
-            url:                      evt.extendedProps.url
-          },
-          description: evt.extendedProps.description || '',
-          category:    evt.extendedProps.category || '',
-          eventId:     evt.extendedProps.url
-        };
-
-        // Create inner HTML
-        pop.innerHTML = `
-          <h4>${info.event.title}</h4>
-          <p>${startTime}${endTime}</p>
-          <p>${addr}</p>
-        `;
-
-        // Create the "Show more" button
-        const showMoreBtn = document.createElement('button');
-        showMoreBtn.textContent = 'Show more';
-        showMoreBtn.addEventListener('click', () => openPopupEvent(details));
-
-        // Append the button to the popup
-        pop.appendChild(showMoreBtn);
-
-        // Temporarily position it off-screen so we can measure it
-        pop.style.position = 'absolute';
-        pop.style.top = '-9999px';
-        pop.style.left = '-9999px';
-        document.body.appendChild(pop);
-
-        // Measure and compute “safe” coords
-        const { width: pw, height: ph } = pop.getBoundingClientRect();
-        const margin = 8;
-        let x = info.jsEvent.pageX;
-        let y = info.jsEvent.pageY;
-
-        // If it would run off the right edge, shift left
-        if (x + pw + margin > window.innerWidth) {
-          x = window.innerWidth - pw - margin;
-        }
-        // If it would run off the bottom edge, pop it _above_ the tap point
-        if (y + ph + margin > window.innerHeight) {
-          y = y - ph - margin;
-        }
-
-        // Finally position it
-        pop.style.top = y + 'px';
-        pop.style.left = x + 'px';
-
-        // Dismiss on next tap anywhere (except inside)
-        const remover = (e) => {
-          if (!pop.contains(e.target)) {
-            pop.remove();
-            document.body.removeEventListener('click', remover);
-          }
-        };
-        setTimeout(() => document.body.addEventListener('click', remover), 0);
-      },
-      eventDidMount: function (info) {
-        const { title, start, extendedProps, end } = info.event;
-        const address = extendedProps.address;
-        const startTime = new Date(start).toLocaleString();
-        const endTime = end ? ` – ${new Date(end).toLocaleString()}` : '';
-        const addressStr =
-          address?.description ||
-          (address?.street || '') +
-            ', ' +
-            (address?.locality || '') +
-            ', ' +
-            (address?.region || '');
-        // source domain
-        const onlineAddress = extendedProps.url;
-        const domain = onlineAddress
-          ? new URL(onlineAddress).hostname
-          : 'Unknown source';
-        info.el.setAttribute(
-          'title',
-          `${title}\n${startTime}${endTime}\n${addressStr}\n${domain}`
-        );
-      },
-    });
-
-    // Update indicators for events outside current view
-    function updateCalendarIndicators(events) {
-      const view = calendar.view;
-      const rangeStart = new Date(view.activeStart);
-      const rangeEnd = new Date(view.activeEnd);
-      const priorCount = events.filter(
-        (e) => new Date(e.beginsOn) < rangeStart
-      ).length;
-      const futureCount = events.filter(
-        (e) => new Date(e.beginsOn) > rangeEnd
-      ).length;
-      const parts = [];
-      if (priorCount > 0) parts.push(`${priorCount} prior event(s) not shown`);
-      if (futureCount > 0)
-        parts.push(`${futureCount} future event(s) not shown`);
-      document.getElementById('calendarIndicators').textContent =
-        parts.join(', ');
-    }
-    calendar.setOption('datesSet', function () {
-      updateCalendarIndicators(events);
-    });
-    updateCalendarIndicators(events);
-    if (document.getElementById('calendarTab').style.display !== 'none') {
-      calendar.render();
-      calendarInitialized = true;
-    } else {
-      const renderOnce = () => {
-        calendar.render();
-        calendar.updateSize();
-        document
-          .querySelector('[data-tab="calendarTab"]')
-          .removeEventListener('click', renderOnce);
-      };
-      document
-        .querySelector('[data-tab="calendarTab"]')
-        .addEventListener('click', renderOnce);
-    }
-
-
-    // Map and marker clusters
-    if (!map) {
-      map = L.map('map').setView([43.6, -72.97], 8);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors',
-      }).addTo(map);
-    }
-    if (markerCluster) {
-      markerCluster.clearLayers();
-    } else {
-      markerCluster = L.markerClusterGroup();
-      map.addLayer(markerCluster);
-    }
-    events.forEach((event) => {
-      if (event.address?.geom) {
-        const [lng, lat] = event.address.geom.split(';').map(Number);
-        if (!isNaN(lat) && !isNaN(lng)) {
-          const marker = L.marker([lat, lng]);
-          const beginsOnStr = new Date(event.beginsOn).toLocaleString();
-          const endsOnStr = event.endsOn
-            ? ` – ${new Date(event.endsOn).toLocaleString()}`
-            : '';
-          const details = {
-            title:       event.title,
-            beginsOn:    event.beginsOn,
-            endsOn:      event.endsOn,
-            address:     event.address,
-            linkText:    event,       // again: getRedirectHTML(event) will pick urls
-            description: event.description,
-            category:    event.category,
-            eventId:     event.url
-          };
-
-          marker.bindPopup(
-            `<strong>${event.title}</strong><br>
-             ${beginsOnStr}${endsOnStr}<br>
-             <a href="#" class="show-more-link">Show more…</a>`
-          );
-          marker.on('popupopen', (e) => {
-          // `e.popup` is the Leaflet popup that just opened
-          // Grab its DOM container…
-          const popupEl = e.popup.getElement();
-
-          // Find our “Show more” link inside it…
-          const btn = popupEl.querySelector('.show-more-link');
-          if (!btn) return;
-
-          btn.addEventListener('click', (ev) => {
-            ev.preventDefault();
-            // close the small Leaflet popup
-            //e.popup._close();
-
-            // now open our fullscreen overlay
-            openPopupEvent(details);
-          });
-        });
-
-
-          markerCluster.addLayer(marker);
-        }
-      }
-    });
-    map.addLayer(markerCluster);
-
-    // Show count of events without location data
-    const noLocCount = events.filter((e) => !e.address.geom).length;
-    const mapIndicators = document.getElementById('mapIndicators');
-    if (noLocCount > 0) {
-      mapIndicators.innerHTML = `${noLocCount} event(s) without location data<br>
-            <small>See these in Event Cards tab by selecting Hide events with location data</small>`;
-    } else {
-      mapIndicators.textContent = '';
-    }
-  }
-
-  // Format category strings for display
-  function humanizeCategory(cat) {
-    return cat
-      .toLowerCase()
-      .split('_')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
-  }
-
-  // Update filter dropdowns dynamically based on event list
-  /*function updateFilterOptions(catEvents, townEvents) {
-    const townFilter = document.getElementById('townFilter');
-    const categoryFilter = document.getElementById('categoryFilter');
-
-    const selectedTown = townFilter.value;
-    const selectedCategory = categoryFilter.value;
-
-    const townCounts = townEvents.reduce((acc, e) => {
-      const t = e.address?.locality?.trim();
-      if (t) acc[t] = (acc[t] || 0) + 1;
-      return acc;
-    }, {});
-    const catCounts = catEvents.reduce((acc, e) => {
-      const c = e.category?.trim();
-      if (c) acc[c] = (acc[c] || 0) + 1;
-      return acc;
-    }, {});
-
-    townFilter.innerHTML = '';
-    const allTownOpt = document.createElement('option');
-    allTownOpt.value = '';
-    allTownOpt.textContent = 'All Towns';
-    townFilter.appendChild(allTownOpt);
-    Object.keys(townCounts)
-      .sort()
-      .forEach((town) => {
-        const opt = document.createElement('option');
-        opt.value = town;
-        opt.textContent = `${town} (${townCounts[town]})`;
-        townFilter.appendChild(opt);
-      });
-    townFilter.value = townCounts[selectedTown] ? selectedTown : '';
-
-    categoryFilter.innerHTML = '';
-    const allCatOpt = document.createElement('option');
-    allCatOpt.value = '';
-    allCatOpt.textContent = 'All Categories';
-    categoryFilter.appendChild(allCatOpt);
-    Object.keys(catCounts)
-      .sort()
-      .forEach((cat) => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.textContent = `${humanizeCategory(cat)} (${catCounts[cat]})`;
-        categoryFilter.appendChild(opt);
-      });
-    categoryFilter.value = catCounts[selectedCategory] ? selectedCategory : '';
-  }*/
-  
-  function updateFilterOptions(catEvents, townEvents) {
-    const townFilter = document.getElementById('townFilter');
-    const categoryFilter = document.getElementById('categoryFilter');
-
-    // 1) remember previous selections
-    const prevTowns = Array.from(townFilter.selectedOptions).map(o => o.value);
-    const prevCats  = Array.from(categoryFilter.selectedOptions).map(o => o.value);
-
-    // 2) rebuild the option lists
-    const townCounts = townEvents.reduce((acc, e) => {
-      const t = e.address?.locality?.trim();
-      if (t) acc[t] = (acc[t] || 0) + 1;
-      return acc;
-    }, {});
-    townFilter.innerHTML = '';
-    // “All Towns”
-    const allTownOpt = document.createElement('option');
-    allTownOpt.value = '';
-    allTownOpt.textContent = 'All Towns';
-    // if user had “All” or nothing selected, keep All selected
-    allTownOpt.selected = prevTowns.length === 0 || prevTowns.includes('');
-    townFilter.appendChild(allTownOpt);
-
-    Object.keys(townCounts).sort().forEach((town) => {
-      const opt = document.createElement('option');
-      opt.value = town;
-      opt.textContent = `${town} (${townCounts[town]})`;
-      // re-select if previously chosen
-      if (prevTowns.includes(town)) opt.selected = true;
-      townFilter.appendChild(opt);
-    });
-
-    // Same for categories
-    const catCounts = catEvents.reduce((acc, e) => {
-      const c = e.category?.trim();
-      if (c) acc[c] = (acc[c] || 0) + 1;
-      return acc;
-    }, {});
-    categoryFilter.innerHTML = '';
-    const allCatOpt = document.createElement('option');
-    allCatOpt.value = '';
-    allCatOpt.textContent = 'All Categories';
-    allCatOpt.selected = prevCats.length === 0 || prevCats.includes('');
-    categoryFilter.appendChild(allCatOpt);
-
-    Object.keys(catCounts).sort().forEach((cat) => {
-      const opt = document.createElement('option');
-      opt.value = cat;
-      opt.textContent = `${humanizeCategory(cat)} (${catCounts[cat]})`;
-      if (prevCats.includes(cat)) opt.selected = true;
-      categoryFilter.appendChild(opt);
-    });
-  }
-
-
-  updateFilterOptions(events, events);
-  renderEvents(events);
-
-  const textSearch = document.getElementById('textSearch');
-  const startDate = document.getElementById('startDate');
-  const endDate = document.getElementById('endDate');
-  const townFilter = document.getElementById('townFilter');
-  const categoryFilter = document.getElementById('categoryFilter');
-  const hideWithLocation = document.getElementById('hideWithLocation');
-
-  // 1) parse URL
-  const urlFilters = parseFiltersFromUrl();
-  const initialEventPopupId = urlFilters.eventId;
-
-  // 2) set inputs
-  textSearch.value = urlFilters.text;
-  startDate.value = urlFilters.start || new Date().toISOString().split('T')[0];
-  endDate.value    = urlFilters.end;
-  hideWithLocation.checked = urlFilters.hideLoc;
-
-  // 3) set multi-selects
-  Array.from(townFilter.options).forEach(opt => {
-    opt.selected = urlFilters.towns.length === 0
-                 ? (opt.value === '')
-                 : urlFilters.towns.includes(opt.value);
-  });
-  Array.from(categoryFilter.options).forEach(opt => {
-    opt.selected = urlFilters.cats.length === 0
-                 ? (opt.value === '')
-                 : urlFilters.cats.includes(opt.value);
-  });
-  
-  if (
-    urlFilters.text ||
-    urlFilters.end ||
-    (urlFilters.towns && urlFilters.towns.length > 0) ||
-    (urlFilters.cats && urlFilters.cats.length > 0)
-  ) {
-    filterToggleBtn.click();
-  }
-
-  function filterEvents(applyFilterButtonPress=false) {
-    const text = textSearch.value.toLowerCase();
-    const start = new Date(startDate.value);
-    const end = new Date(endDate.value);
-    //const town = townFilter.value.toLowerCase();
-    const selectedTowns = Array.from(townFilter.selectedOptions)
-                            .map(o => o.value.toLowerCase());
-    // if “All Towns” is selected we treat it as “no filter”
-    const filterAllTowns = selectedTowns.includes('');
-    //const category = categoryFilter.value.toLowerCase();
-    const selectedCats = Array.from(categoryFilter.selectedOptions)
-                          .map(o => o.value.toLowerCase());
-    const filterAllCats = selectedCats.includes('');
-    const targetId = getActiveTab();
-    const doHide = targetId === 'cardsTab' && hideWithLocation.checked;
-
-    const filteredIgnoreCat = events.filter((event) => {
-      const d = new Date(event.beginsOn);
-      const matchText =
-        event.title?.toLowerCase().includes(text) ||
-        event.address?.description?.toLowerCase().includes(text) ||
-        event.address?.locality?.toLowerCase().includes(text) ||
-        (event.category || '').toLowerCase().includes(text);
-      //const matchTown =
-      //  !town || event.address?.locality?.toLowerCase() === town;
-      const eventTown = (event.address?.locality || '').toLowerCase();
-      const matchTown = filterAllTowns || selectedTowns.includes(eventTown);
-      const inDateRange =
-        (!startDate.value || d >= start) && (!endDate.value || d <= end);
-      const matchLocation = !doHide || !event.address.geom;
-
-      return matchText && matchTown && inDateRange && matchLocation;
-    });
-
-    const filteredIgnoreTown = events.filter((event) => {
-      const d = new Date(event.beginsOn);
-      const matchText =
-        event.title?.toLowerCase().includes(text) ||
-        event.address?.description?.toLowerCase().includes(text) ||
-        event.address?.locality?.toLowerCase().includes(text) ||
-        (event.category || '').toLowerCase().includes(text);
-      //const matchCategory =
-      //  !category || (event.category || '').toLowerCase() === category;
-      const eventCat = (event.category || '').toLowerCase();
-      const matchCategory = filterAllCats || selectedCats.includes(eventCat);
-      const inDateRange =
-        (!startDate.value || d >= start) && (!endDate.value || d <= end);
-      const matchLocation = !doHide || !event.address.geom;
-
-      return matchText && matchCategory && inDateRange && matchLocation;
-    });
-
-    const filtered = events.filter((event) => {
-      const d = new Date(event.beginsOn);
-      const matchText =
-        event.title?.toLowerCase().includes(text) ||
-        event.address?.description?.toLowerCase().includes(text) ||
-        event.address?.locality?.toLowerCase().includes(text) ||
-        (event.category || '').toLowerCase().includes(text);
-      //const matchTown =
-      //  !town || event.address?.locality?.toLowerCase() === town;
-      const eventTown = (event.address?.locality || '').toLowerCase();
-      const matchTown = filterAllTowns || selectedTowns.includes(eventTown);
-      
-      //const matchCategory =
-      //  !category || (event.category || '').toLowerCase() === category;
-      const eventCat = (event.category || '').toLowerCase();
-      const matchCategory = filterAllCats || selectedCats.includes(eventCat);
-      const inDateRange =
-        (!startDate.value || d >= start) && (!endDate.value || d <= end);
-      const matchLocation = !doHide || !event.address.geom;
-
-      return (
-        matchText && matchTown && matchCategory && inDateRange && matchLocation
-      );
-    });
-
-    updateFilterOptions(filteredIgnoreCat, filteredIgnoreTown);
-    renderEvents(filtered);
-    // after filters & rendering…
-    updateUrlParams();  
-
-    setTimeout(() => {
-      const activeTab = getActiveTab();
-      console.log(calendar);
-      if (activeTab === "calendarTab" && calendar && calendar.view.type === 'dayGridMonth') {
-        const firstEventEl = document.querySelector('.fc-event');
-        const scrollerEl = document.querySelector('.fc-scroller');
-        if (firstEventEl && scrollerEl) {
-          const priorWindowScrollY = window.scrollY;
-          firstEventEl.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start', // or 'center'
-            alignToTop: false,
-            container: 'nearest'
-          });
-          if (!applyFilterButtonPress) {
-            window.scrollTo({ top: priorWindowScrollY });
-          }
-        }
-      }
-    }, 100);
-  }
-
-
-  // 4) apply immediately
-  filterEvents();
-  // Listen to submit filter button
-  document.getElementById('applyFilters').addEventListener('click', (e) => {
-    e.preventDefault();
-    filterEvents(true);
-  });
-
-  // Attach filter listeners
-  document
-    .getElementById('hideWithLocation')
-    .addEventListener('input', filterEvents);
-
-  // Listen to event card sort order
-  const sortOrderSelect = document.getElementById('sortOrder');
-  sortOrderSelect.addEventListener('change', () => {
-    renderEventCards(events, sortOrderSelect.value);
-  });
-
-  // Initial render with default sort (upcoming first)
-  filterEvents();
-  console.log(initialEventPopupId);
-  if (initialEventPopupId) {
-    const initialPopup = events.find(evt => evt.url === initialEventPopupId);
-    const details = {
-        title:       initialPopup.title,
-        beginsOn:    initialPopup.beginsOn,
-        endsOn:      initialPopup.endsOn,
-        address:     initialPopup.address,
-        linkText:    initialPopup,           // we’ll let getRedirectHTML pick url fields
-        description: initialPopup.description,
-        category:    initialPopup.category,
-        eventId:     initialPopup.url
-      };
-    openPopupEvent(details);
-  }
-
-
-  // Remove loader
-  const loader = document.getElementById('loader');
-  if (loader) loader.remove();
+  const params = new URLSearchParams(window.location.search);
+  const initialSection = params.get('sidePanelSection') || 'viewEvents';
+  switchSection(initialSection);
 })();
