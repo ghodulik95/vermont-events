@@ -52,7 +52,7 @@ export function openPopupEvent({
     locEl.innerHTML = `<strong>Location:</strong> ${address.locality || 'Unknown'}`;
 
     const srcEl = document.createElement('p');
-    srcEl.innerHTML = `<strong>More details at:</strong> ${linkText.url}`;
+    srcEl.innerHTML = `<strong>More details at:</strong> ${getRedirectHTML(linkText)}`;
 
     card.append(titleEl, dateEl, locEl, srcEl);
 

@@ -7,8 +7,11 @@ import { loadBlog }               from './feeds/blogLoader.js';
 import { openPopupEvent }        from './ui/popup.js';
 
 import { renderEventCards, renderCalendar, renderMap } from './render/index.js';
-import { parseFiltersFromUrl, filterEvents, updateUrlParams } from './render/filters.js';
+import { parseFiltersFromUrl, filterEvents, updateUrlParams, updateFilterOptions } from './render/filters.js';
 import { defaultFillPlaceholders } from './render/fillPlaceholders.js';
+//import * as Survey from "survey-core";
+//import "survey-js-ui";
+
 
 let events = [];
 (async () => {
@@ -101,8 +104,9 @@ let events = [];
   renderEventCards(events);
   renderCalendar(events);
   renderMap(events);
-
+  updateFilterOptions(events, events);
   const urlFilters = parseFiltersFromUrl();
+  const initialEventPopupId = urlFilters.eventId;
   document.getElementById('textSearch').value = urlFilters.text;
   document.getElementById('startDate').value = urlFilters.start || new Date().toISOString().slice(0,10);
   document.getElementById('endDate').value = urlFilters.end;
@@ -117,8 +121,21 @@ let events = [];
                  ? (opt.value === '')
                  : urlFilters.cats.includes(opt.value);
   });
-  if (urlFilters.text || urlFilters.end || urlFilters.towns.length || urlFilters.cats.length) {
-    document.getElementById('toggleFilters').click();
+
+  
+  if (initialEventPopupId) {
+    const initialPopup = events.find(evt => evt.url === initialEventPopupId);
+    const details = {
+        title:       initialPopup.title,
+        beginsOn:    initialPopup.beginsOn,
+        endsOn:      initialPopup.endsOn,
+        address:     initialPopup.address,
+        linkText:    initialPopup,           // we’ll let getRedirectHTML pick url fields
+        description: initialPopup.description,
+        category:    initialPopup.category,
+        eventId:     initialPopup.url
+      };
+    openPopupEvent(details);
   }
   
   window.rerenderEvents = () => {
@@ -135,13 +152,20 @@ let events = [];
   });
   document
     .getElementById('hideWithLocation')
-    .addEventListener('input', window.rerenderEvents());
+    .addEventListener('input', window.rerenderEvents);
 
   if (detectMobile()) {
     document.querySelector('[data-tab="cardsTab"]').click();
   } else {
     document.querySelector('[data-tab="calendarTab"]').click();
   }
+
+  if (urlFilters.text || urlFilters.end || urlFilters.towns.length || urlFilters.cats.length) {
+    document.getElementById('toggleFilters').click();
+    document.getElementById('applyFilters').click();
+  }
+  
+  document.getElementById('sidebarCloseButton').addEventListener('click', closeSidebar);
 
   const params = new URLSearchParams(window.location.search);
   const initialSection = params.get('sidePanelSection') || 'viewEvents';

@@ -27,7 +27,7 @@ export function updateUrlParams() {
   if (textSearch.value)   params.set('text',  textSearch.value);
   if (startDate.value)    params.set('start', startDate.value);
   if (endDate.value)      params.set('end',   endDate.value);
-
+  
   Array.from(townFilter.selectedOptions)
        .map(o => o.value)
        .filter(v => v)

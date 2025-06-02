@@ -18,14 +18,14 @@ export function renderEventCards(events, sortOrder='asc') {
     card.append(titleEl, dateEl);
     card.addEventListener('click', () => {
       openPopupEvent({
-        title: event.title,
-        beginsOn: event.beginsOn,
-        endsOn: event.endsOn,
-        address: event.address,
-        linkText: { url: event.link },
+        title:       event.title,
+        beginsOn:    event.beginsOn,
+        endsOn:      event.endsOn,
+        address:     event.address,
+        linkText:    event,           // we’ll let getRedirectHTML pick url fields
         description: event.description,
-        category: event.category,
-        eventId: event.id || ''
+        category:    event.category,
+        eventId:     event.url
       });
     });
     if (event.address?.locality) {

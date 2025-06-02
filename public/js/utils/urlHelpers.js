@@ -41,28 +41,38 @@ export function getDomain(url) {
  *   getRedirectHTML("https://vermontmobilizon.xyz")
  *   getRedirectHTML({ url: "https://vermontmobilizon.xyz", description: "More info" })
  */
-export function getRedirectHTML(linkInfo) {
-  let href, text;
+export function getRedirectHTML(rawEvent, truncate = null) {
+  const { externalParticipationUrl, onlineAddress, url } = rawEvent;
 
-  if (typeof linkInfo === "string") {
-    href = linkInfo;
-    text = getDomain(linkInfo) || linkInfo;
-  } else if (
-    linkInfo &&
-    typeof linkInfo === "object" &&
-    typeof linkInfo.url === "string"
-  ) {
-    href = linkInfo.url;
-    // Prefer a non-empty description; otherwise, use the domain.
-    text = linkInfo.description?.trim() || getDomain(linkInfo.url) || linkInfo.url;
-  } else {
-    return ""; // Not a valid linkInfo shape
+  const links = [];
+
+  if (isValidUrl(externalParticipationUrl)) {
+    links.push(createLink(externalParticipationUrl, truncate));
   }
 
-  if (!isValidUrl(href)) {
-    return ""; // Don’t generate a link if the URL is invalid
+  if (isValidUrl(onlineAddress)) {
+    if (
+      !isValidUrl(externalParticipationUrl) ||
+      getDomain(onlineAddress) != getDomain(externalParticipationUrl)
+    ) {
+      links.push(createLink(onlineAddress, truncate));
+    }
   }
 
-  // Always open in a new tab and add rel="noopener" for security
-  return `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
+  if (links.length === 0 && url) {
+    // Assume `url` is always valid
+    links.push(createLink(url, truncate));
+  }
+
+  return links.join(', ');
+}
+
+function createLink(linkUrl, truncate) {
+  const domain = getDomain(linkUrl);
+  const label =
+    truncate && domain.length > truncate
+      ? domain.slice(0, truncate) + '...'
+      : domain;
+
+  return `<a href="${linkUrl}" target="_blank">${label}</a>`;
 }
