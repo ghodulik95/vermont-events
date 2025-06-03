@@ -100,11 +100,6 @@ let events = [];
     }, 0);
   });
 
-  events = rawEvents;
-  renderEventCards(events);
-  renderCalendar(events);
-  renderMap(events);
-  updateFilterOptions(events, events);
   const urlFilters = parseFiltersFromUrl();
   const initialEventPopupId = urlFilters.eventId;
   document.getElementById('textSearch').value = urlFilters.text;
@@ -122,6 +117,12 @@ let events = [];
                  : urlFilters.cats.includes(opt.value);
   });
 
+  events = rawEvents;
+  renderEventCards(events);
+  renderCalendar(events, false, urlFilters.start || new Date().toISOString().slice(0,10));
+  renderMap(events);
+  updateFilterOptions(events, events);
+  
   
   if (initialEventPopupId) {
     const initialPopup = events.find(evt => evt.url === initialEventPopupId);
@@ -138,17 +139,17 @@ let events = [];
     openPopupEvent(details);
   }
   
-  window.rerenderEvents = () => {
+  window.rerenderEvents = (applyFilterButtonPress=null) => {
     const filtered = filterEvents(events);
     renderEventCards(filtered);
-    renderCalendar(filtered);
+    renderCalendar(filtered, applyFilterButtonPress);
     renderMap(filtered);
     updateUrlParams();
   };
 
   document.getElementById('applyFilters').addEventListener('click', e => {
     e.preventDefault();
-    window.rerenderEvents();
+    window.rerenderEvents(true);
   });
   document
     .getElementById('hideWithLocation')

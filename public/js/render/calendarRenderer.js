@@ -1,5 +1,19 @@
 // /js/render/calendarRenderer.js
 import { openPopupEvent } from '../ui/popup.js';
+import { detectMobile }          from '../utils/detectMobile.js';
+
+function getActiveTab() {
+    const buttons = document.querySelectorAll('.tabButton');
+    for (const button of buttons) {
+      if (button.classList.contains('active')) {
+        return button.getAttribute('data-tab');
+      }
+    }
+    console.error(
+      'No active tab found. This should not happen with expected functioning.'
+    );
+    return null;
+  }
 
 function updateCalendarIndicators(events) {
     const view = window._calendarInstance.view;
@@ -20,9 +34,14 @@ function updateCalendarIndicators(events) {
   }
  
 
-export function renderCalendar(events) {
+export function renderCalendar(events, applyFilterButtonPress=false, startDateOverride=null) {
   const calendarEl = document.getElementById('calendar');
+  let initialDateStr = startDateOverride ? startDateOverride : new Date().toISOString().split('T')[0];
+  let viewType = detectMobile() ? "dayGridDay" : "dayGridMonth";
+
   if (window._calendarInstance) {
+    viewType = window._calendarInstance.view.type;
+    initialDateStr = window._calendarInstance.getDate().toISOString().split('T')[0];    
     window._calendarInstance.destroy();
   }
   const calEvents = events.map((event) => ({
@@ -40,7 +59,13 @@ export function renderCalendar(events) {
       },
     }));
   window._calendarInstance = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'dayGridMonth',
+    initialView: viewType,
+    initialDate: initialDateStr,
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay',
+    },
     events: calEvents,
     eventClick: (info) => {
       // Remove any old popover
@@ -155,4 +180,24 @@ export function renderCalendar(events) {
   });
   updateCalendarIndicators(events);
   window._calendarInstance.render();
+  
+  setTimeout(() => {
+    const activeTab = getActiveTab();
+    if (activeTab === "calendarTab" && window._calendarInstance && window._calendarInstance.view.type === 'dayGridMonth') {
+      const firstEventEl = document.querySelector('.fc-event');
+      const scrollerEl = document.querySelector('.fc-scroller');
+      if (firstEventEl && scrollerEl) {
+        const priorWindowScrollY = window.scrollY;
+        firstEventEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start', // or 'center'
+          alignToTop: false,
+          container: 'nearest'
+        });
+        if (!applyFilterButtonPress) {
+          window.scrollTo({ top: priorWindowScrollY });
+        }
+      }
+    }
+  }, 100);
 }
