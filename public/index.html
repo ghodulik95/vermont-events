@@ -1,193 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Mobilizon Event Fetcher</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-      crossorigin=""
-    />
-    <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-      crossorigin=""
-    ></script>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
-    />
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <link
-      href="https://unpkg.com/survey-core/survey-core.min.css"
-      type="text/css"
-      rel="stylesheet"
-    />
-    <script
-      type="text/javascript"
-      src="https://unpkg.com/survey-core/survey.core.min.js"
-    ></script>
-    <script
-      type="text/javascript"
-      src="https://unpkg.com/survey-js-ui/survey-js-ui.min.js"
-    ></script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mobilizon Event Fetcher</title>
 
-    <link rel="stylesheet" href="./css/style.css?v=4" />
-  </head>
-  <body>
-    <noscript>
-      <style>
-        .js-required-notice {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: #f44336;
-        color: #fff;
-        padding: 1em;
-        text-align: center;
-        font-weight: bold;
-        border-radius: 0 0 5px 5px;
-        z-index: 9999;
-      </style>
-      <div class="js-required-notice">
-        ⚠️ This website requires JavaScript to function correctly. Please enable
-        JavaScript in your browser settings and refresh the page.
-      </div>
-    </noscript>
+  <!-- FONTS & EXTERNAL LIBRARIES -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap"
+    rel="stylesheet"
+  />
 
-    <div
-      id="loader"
-      style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9000;
-      "
-    >
-      <div class="spinner"></div>
+  <!-- LEAFLET / FULLCALENDAR / SURVEY‐JS CSS (as before) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+  />
+
+  <link
+    href="https://unpkg.com/survey-core/survey-core.min.css"
+    type="text/css"
+    rel="stylesheet"
+  />
+
+  <!-- OUR CSS (split) -->
+  <link rel="stylesheet" href="./css/base.css" />
+  <link rel="stylesheet" href="./css/layout.css" />
+  <link rel="stylesheet" href="./css/components.css" />
+  <link rel="stylesheet" href="./css/responsive.css" />
+
+  <!-- FULLCALENDAR JS (global) -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <!-- LEAFLET / MARKERCLUSTER JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+  <!-- SURVEY‐JS CORE + UI -->
+  <script
+    type="text/javascript"
+    src="https://unpkg.com/survey-core/survey.core.min.js"
+  ></script>
+  <script
+    type="text/javascript"
+    src="https://unpkg.com/survey-js-ui/survey-js-ui.min.js"
+  ></script>
+</head>
+<body>
+  <noscript>
+    <div class="js-required-notice">
+      ⚠️ This website requires JavaScript to function correctly.
     </div>
+  </noscript>
 
-    <div id="topBanner">
-      Alpha testing notice: This site is under active development.
-    </div>
-    <a href="issue" target="_blank" id="floatingButton">Submit an issue</a>
-    <h1>Welcome to <span class="site-name-text"></span></h1>
-    <p style="margin-top: 8px" id="splashText">
-      On this site, community events from around the state are aggregated for
-      your convenience!
-    </p>
-    <form id="filters">
-      <div class="filter-group">
-        <label for="textSearch">Search Events</label>
-        <input type="text" id="textSearch" placeholder="Enter keywords…" />
-      </div>
+  <!-- LOADER (remains the same) -->
+  <div id="loader">
+    <div class="spinner"></div>
+  </div>
 
-      <div class="filter-group">
-        <label for="startDate">Start Date</label>
-        <input type="date" id="startDate" />
-      </div>
+  <!-- TOP BANNER + HAMBURGER -->
+  <div id="topBanner">
+    <span id="topBannerText">Alpha testing notice: …</span>
+    <div id="hamburgerButton" class="hamburger">&#9776;</div>
+  </div>
 
-      <div class="filter-group">
-        <label for="endDate">End Date</label>
-        <input type="date" id="endDate" />
-      </div>
+  <!-- SIDEBAR NAV (same as before) -->
+  <div id="sidebar">
+    <button id="sidebarCloseButton" class="closebtn">&times;</button>
+    <a href="#" id="navViewEvents"    class="sidebar-nav">View Events</a>
+    <a href="#" id="navAboutSection"  class="sidebar-nav">About</a>
+    <a href="#" id="navBlogSection"   class="sidebar-nav">Blog</a>
+    <a href="#" id="navCommentSection"class="sidebar-nav">Comment</a>
+    <a href="issue" target="_blank" class="sidebar-nav">Submit an issue</a>
+  </div>
 
-      <div class="filter-group">
-        <label for="townFilter">Town</label>
-        <select id="townFilter">
-          <option value="">All Towns</option>
-          <!-- …other options… -->
-        </select>
-      </div>
+  <!-- MAIN CONTENT (unchanged structure, but now the JS will wire up behavior) -->
+  <div id="mainContent">
+    <div id="viewEvents" class="mainSection active">
+      <h1>Welcome to <span class="site-name-text"></span></h1>
+      <p id="splashText">
+        On this site, community events from around the state are aggregated…
+      </p>
 
-      <div class="filter-group">
-        <label for="categoryFilter">Category</label>
-        <select id="categoryFilter">
-          <option value="">All Categories</option>
-          <!-- …other options… -->
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label aria-hidden="true">&nbsp;</label>
-        <button type="submit" id="applyFilters">Apply Filters</button>
-      </div>
-    </form>
-
-    <div id="tabButtons">
-      <button class="tabButton" data-tab="calendarTab">Calendar</button>
-      <button class="tabButton" data-tab="mapTab">Map</button>
-      <button class="tabButton" data-tab="cardsTab">Event Cards</button>
-      <!-- Later will point to createEventTab and not createEventTabWrapper !-->
-      <button
-        class="tabButton createEventButton"
-        data-tab="createEventTabWrapper"
-      >
-        +
-      </button>
-      <button class="tabButton aboutButton" data-tab="aboutTab">About</button>
-    </div>
-    <div id="calendarTab" class="tabContent">
-      <div id="calendarIndicators" class="view-indicators"></div>
-      <div id="calendar"></div>
-    </div>
-    <div id="mapTab" class="tabContent" style="display: none">
-      <div id="mapIndicators" class="view-indicators"></div>
-      <div id="map"></div>
-    </div>
-    <div id="cardsTab" class="tabContent" style="display: none">
-      <div class="cards-controls">
-        <div class="cards-sort">
-          <label for="sortOrder">Sort by:</label>
-          <select id="sortOrder">
-            <option value="asc" selected>Upcoming first</option>
-            <option value="desc">Furthest first</option>
-          </select>
+      <div class="filters-container">
+        <button id="toggleFilters">Show Filters ▼</button>
+        <div id="filtersContainer">
+          <form id="filters">
+            <!-- filter-group markup remains exactly as before -->
+            <div class="filter-group">
+              <label for="textSearch">Search Events</label>
+              <input type="text" id="textSearch" placeholder="Enter keywords…" />
+            </div>
+            <div class="filter-group">
+              <label for="startDate">Start Date</label>
+              <input type="date" id="startDate" />
+            </div>
+            <div class="filter-group">
+              <label for="endDate">End Date</label>
+              <input type="date" id="endDate" />
+            </div>
+            <div class="filter-group">
+              <label for="townFilter">Town</label>
+              <select id="townFilter" multiple>
+                <option value="">All Towns</option>
+                <!-- … -->
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="categoryFilter">Category</label>
+              <select id="categoryFilter" multiple>
+                <option value="">All Categories</option>
+                <!-- … -->
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>&nbsp;</label>
+              <button type="submit" id="applyFilters">Apply Filters</button>
+            </div>
+          </form>
         </div>
+      </div>
 
-        <div class="cards-toggle">
-          <div class="advanced-toggle">
-            <span class="tooltip"
-              >?
-              <span class="tooltiptext">
-                Only show events missing location info (which do not appear in
-                map view)
+      <!-- TAB BUTTONS -->
+      <div id="tabButtons">
+        <button class="tabButton" data-tab="calendarTab">Calendar</button>
+        <button class="tabButton" data-tab="mapTab">Map</button>
+        <button class="tabButton" data-tab="cardsTab">Event Cards</button>
+        <button class="tabButton createEventButton" data-tab="createEventTabWrapper">+</button>
+      </div>
+
+      <!-- TAB CONTENTS -->
+      <div id="calendarTab" class="tabContent">
+        <div id="calendarIndicators" class="view-indicators"></div>
+        <div id="calendar"></div>
+      </div>
+      <div id="mapTab" class="tabContent" style="display: none">
+        <div id="mapIndicators" class="view-indicators"></div>
+        <div id="map"></div>
+      </div>
+      <div id="cardsTab" class="tabContent" style="display: none">
+        <div class="cards-controls">
+          <div class="cards-sort">
+            <label for="sortOrder">Sort by:</label>
+            <select id="sortOrder">
+              <option value="asc" selected>Upcoming first</option>
+              <option value="desc">Furthest first</option>
+            </select>
+          </div>
+          <div class="cards-toggle">
+            <div class="advanced-toggle">
+              <span class="tooltip">?
+                <span class="tooltiptext">
+                  Only show events missing location info (do not appear in map view)
+                </span>
               </span>
-            </span>
-            <input type="checkbox" id="hideWithLocation" />
-            <label for="hideWithLocation">Hide events with location data</label>
+              <input type="checkbox" id="hideWithLocation" />
+              <label for="hideWithLocation">Hide events with location data</label>
+            </div>
           </div>
         </div>
+        <div id="eventCards"></div>
       </div>
-      <div id="eventCards"></div>
-    </div>
-    <!-- Later will remove wrapper and add tabContent class to the createEventTab !-->
-    <div id="createEventTabWrapper" class="tabContent">
-      <span id="createEventWarning"></span>
-      <div id="createEventTab"><!-- loaded by JS --></div>
-    </div>
-    <div id="aboutTab" class="tabContent"><!-- loaded by JS --></div>
+      <div id="createEventTabWrapper" class="tabContent">
+        <span id="createEventWarning"></span>
+        <div id="createEventTab"><!-- Survey‐JS will render here --></div>
+      </div>
 
-    <script src="./js/app.js?v=4"></script>
-  </body>
+      <!-- FULLSCREEN POPUP OVERLAY (same markup) -->
+      <div id="popupOverlay">
+        <div id="popupCard">
+          <div id="popupCardContent"></div>
+          <span id="popupCardEventId" style="display: none;"></span>
+          <button id="closePopup">&times;</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="aboutSection" class="mainSection">
+      <h1>Reports Section</h1>
+      <p>Here you can view analytics and reports about the events.</p>
+    </div>
+
+    <div id="blogSection" class="mainSection">
+      <h1>Blog</h1>
+      <p><span class="site-name-text"></span> Blog</p>
+      <p>See posts about site updates below.</p>
+      <p>Follow the blog <span class="blog-link"></span>! Posts also on Mastodon <span class="mastodon-link"></span>.</p>
+      <div id="blogFeed">
+        <p>Loading latest posts…</p>
+      </div>
+    </div>
+
+    <div id="commentSection" class="mainSection">
+      <h1>Public comments</h1>
+      <div id="publicComments"></div>
+    </div>
+  </div>
+
+  <!-- ISSO SCRIPT (unmodified) -->
+  <script data-isso="https://comments.vermontmobilizon.xyz/" src="https://comments.vermontmobilizon.xyz/js/embed.min.js"></script>
+
+  <!-- OUR “ENTRY POINT” SCRIPT (loads everything else as modules) -->
+  <script type="module" src="./js/app.js"></script>
+</body>
 </html>

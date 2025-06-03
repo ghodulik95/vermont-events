@@ -16,8 +16,11 @@ const cfg = {
   siteTitle: process.env.SITE_TITLE,
   mobilizonUrl: process.env.MOBILIZON_URL,
   contactEmail: process.env.CONTACT_EMAIL || '',
-  topBannerText: process.env.TOP_BANNER_TEXT || 'Alpha testing',
+  topBannerText: process.env.TOP_BANNER_TEXT || 'This site is under active development',
   splashText: process.env.SPLASH_TEXT || null,
+  blogLink: process.env.BLOG_LINK || null,
+  blogFeedURL: process.env.BLOG_FEED_URL || null,
+  mastodonLink: process.env.MASTODON_LINK || null
 };
 
 // Write to public/config.json

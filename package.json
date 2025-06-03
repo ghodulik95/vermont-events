@@ -6,7 +6,7 @@
     "gen-config": "node scripts/generate-config.js",
     "fetch-events": "node fetch-events.js",
     "bump-version": "node scripts/bump-version.js",
-    "build": "npm run gen-config && npm run fetch-events",
+    "build": "npm run gen-config",
     "start": "npm run build && serve public",
     "format": "prettier --write \"**/*.{js,json,md,css,html}\"",
     "lint": "eslint --fix \"**/*.js\"",

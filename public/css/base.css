@@ -1,0 +1,41 @@
+/* /css/base.css */
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+}
+body {
+  background: linear-gradient(120deg, #efefef 0%, #dadada 100%);
+  color: #333;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background 0.3s ease;
+}
+h1 {
+  margin-top: 2rem;
+  font-size: 2.5rem;
+  text-align: center;
+  font-weight: 700;
+  color: #444;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+p {
+  line-height: 1.6;
+}
+#splashText {
+  margin: 8px 2px;
+}
+#toggleFilters {
+  background: #ffc107;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
